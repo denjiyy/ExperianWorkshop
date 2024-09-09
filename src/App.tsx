@@ -3,14 +3,16 @@ import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import {QueryClient,QueryClientProvider} from "@tanstack/react-query"
 import { ThemeProvider } from 'styled-components';
 import { GlobalStyles,theme } from './styles';
-import * as S from "./collections/LoginForm"
+import * as S from "./pages"
 function App() {
   return (
     <div className="App">
       <GlobalStyles/>
       <Router>
         <Routes>
-          <Route path='/' element={<S.LoginForm/>}/>
+          <Route path='/' element={<S.HomePage/>}/>
+          <Route path='/login' element={<S.LoginUpPage/>}/>
+          <Route path='/signup' element={<S.SignUpPage/>}/>
         </Routes>
       </Router>
       

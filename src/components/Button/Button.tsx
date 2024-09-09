@@ -7,6 +7,9 @@ export interface ButtonProps extends HTMLButtonProps {
   variant ?: "primary" | "secondary" | "tertiary" | "ghost",
   iconPath ?:"none" | string,
   fill ?: "none"  | string,
+  stroke?: "none" | string;
+  strokeOpacity?: number;
+  viewBox ?: string;
 }
 
 // export const Button = (isGame : boolean,children : ReactElement) => {
@@ -20,12 +23,12 @@ export interface ButtonProps extends HTMLButtonProps {
 
 export const Button = forwardRef(
   (
-    { fill,variant,iconPath,children,...props }: ButtonProps,
+    { fill,variant,iconPath,children,stroke,viewBox,strokeOpacity,...props }: ButtonProps,
     ref: ForwardedRef<HTMLButtonElement>,
     
 
   ) => {
-    return <S.Button {...props} variant={variant} ref={ref}>{children}{iconPath!=null && <Icon path={iconPath} fill={fill} xmlns="http://www.w3.org/2000/svg" />}
+    return <S.Button {...props} variant={variant} ref={ref}>{children}{iconPath!=null && <Icon path={iconPath} viewBox={viewBox} stroke={stroke} strokeOpacity={strokeOpacity} fill={fill} xmlns="http://www.w3.org/2000/svg" />}
     </S.Button>;
   }
 ); //using ref to access the button
