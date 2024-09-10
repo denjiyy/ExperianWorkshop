@@ -1,0 +1,48 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project>
+  <PropertyGroup>
+    <PackageJsonName Condition="$(PackageJsonName) == ''">experian</PackageJsonName>
+    <PackageJsonVersion Condition="$(PackageJsonVersion) == ''">0.1.0</PackageJsonVersion>
+    <PackageJsonPrivate Condition="$(PackageJsonPrivate) == ''">true</PackageJsonPrivate>
+    <PackageJsonDependenciesHookformResolvers Condition="$(PackageJsonDependenciesHookformResolvers) == ''">^3.9.0</PackageJsonDependenciesHookformResolvers>
+    <PackageJsonDependenciesTanstackReactQuery Condition="$(PackageJsonDependenciesTanstackReactQuery) == ''">^5.54.1</PackageJsonDependenciesTanstackReactQuery>
+    <PackageJsonDependenciesTestingLibraryJestDom Condition="$(PackageJsonDependenciesTestingLibraryJestDom) == ''">^5.17.0</PackageJsonDependenciesTestingLibraryJestDom>
+    <PackageJsonDependenciesTestingLibraryReact Condition="$(PackageJsonDependenciesTestingLibraryReact) == ''">^13.4.0</PackageJsonDependenciesTestingLibraryReact>
+    <PackageJsonDependenciesTestingLibraryUserEvent Condition="$(PackageJsonDependenciesTestingLibraryUserEvent) == ''">^13.5.0</PackageJsonDependenciesTestingLibraryUserEvent>
+    <PackageJsonDependenciesTypesJest Condition="$(PackageJsonDependenciesTypesJest) == ''">^27.5.2</PackageJsonDependenciesTypesJest>
+    <PackageJsonDependenciesTypesReact Condition="$(PackageJsonDependenciesTypesReact) == ''">^18.3.5</PackageJsonDependenciesTypesReact>
+    <PackageJsonDependenciesTypesReactDom Condition="$(PackageJsonDependenciesTypesReactDom) == ''">^18.3.0</PackageJsonDependenciesTypesReactDom>
+    <PackageJsonDependenciesReact Condition="$(PackageJsonDependenciesReact) == ''">^18.3.1</PackageJsonDependenciesReact>
+    <PackageJsonDependenciesReactDom Condition="$(PackageJsonDependenciesReactDom) == ''">^18.3.1</PackageJsonDependenciesReactDom>
+    <PackageJsonDependenciesReactHookForm Condition="$(PackageJsonDependenciesReactHookForm) == ''">^7.53.0</PackageJsonDependenciesReactHookForm>
+    <PackageJsonDependenciesReactRouterDom Condition="$(PackageJsonDependenciesReactRouterDom) == ''">^6.26.1</PackageJsonDependenciesReactRouterDom>
+    <PackageJsonDependenciesReactScripts Condition="$(PackageJsonDependenciesReactScripts) == ''">5.0.1</PackageJsonDependenciesReactScripts>
+    <PackageJsonDependenciesStyledComponents Condition="$(PackageJsonDependenciesStyledComponents) == ''">^6.1.13</PackageJsonDependenciesStyledComponents>
+    <PackageJsonDependenciesTypescript Condition="$(PackageJsonDependenciesTypescript) == ''">^4.9.5</PackageJsonDependenciesTypescript>
+    <PackageJsonDependenciesWebVitals Condition="$(PackageJsonDependenciesWebVitals) == ''">^2.1.4</PackageJsonDependenciesWebVitals>
+    <PackageJsonDependenciesZod Condition="$(PackageJsonDependenciesZod) == ''">^3.23.8</PackageJsonDependenciesZod>
+    <PackageJsonScriptsStart Condition="$(PackageJsonScriptsStart) == ''">react-scripts start</PackageJsonScriptsStart>
+    <PackageJsonScriptsBuild Condition="$(PackageJsonScriptsBuild) == ''">react-scripts build</PackageJsonScriptsBuild>
+    <PackageJsonScriptsTest Condition="$(PackageJsonScriptsTest) == ''">react-scripts test</PackageJsonScriptsTest>
+    <PackageJsonScriptsEject Condition="$(PackageJsonScriptsEject) == ''">react-scripts eject</PackageJsonScriptsEject>
+    <PackageJsonScriptsDev Condition="$(PackageJsonScriptsDev) == ''">webpack --mode development</PackageJsonScriptsDev>
+    <PackageJsonEslintconfigExtends Condition="$(PackageJsonEslintconfigExtends) == ''">[
+  "react-app",
+  "react-app/jest"
+]</PackageJsonEslintconfigExtends>
+    <PackageJsonBrowserslistProduction Condition="$(PackageJsonBrowserslistProduction) == ''">[
+  "\u003E0.2%",
+  "not dead",
+  "not op_mini all"
+]</PackageJsonBrowserslistProduction>
+    <PackageJsonBrowserslistDevelopment Condition="$(PackageJsonBrowserslistDevelopment) == ''">[
+  "last 1 chrome version",
+  "last 1 firefox version",
+  "last 1 safari version"
+]</PackageJsonBrowserslistDevelopment>
+    <PackageJsonDevdependenciesTypesNode Condition="$(PackageJsonDevdependenciesTypesNode) == ''">^18.0.0</PackageJsonDevdependenciesTypesNode>
+    <PackageJsonDevdependenciesVitejsPluginReact Condition="$(PackageJsonDevdependenciesVitejsPluginReact) == ''">^4.3.1</PackageJsonDevdependenciesVitejsPluginReact>
+    <PackageJsonDevdependenciesVite Condition="$(PackageJsonDevdependenciesVite) == ''">^5.4.3</PackageJsonDevdependenciesVite>
+    <PackageJsonDevdependenciesWebpackCli Condition="$(PackageJsonDevdependenciesWebpackCli) == ''">^5.1.4</PackageJsonDevdependenciesWebpackCli>
+  </PropertyGroup>
+</Project>

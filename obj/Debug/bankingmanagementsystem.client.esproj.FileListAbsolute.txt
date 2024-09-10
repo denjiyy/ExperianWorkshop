@@ -1,0 +1,1 @@
+C:\Users\tabut\source\repos\BankingManagementSystem\bankingmanagementsystem.client\obj\Debug\bankingmanagementsystem.client.esproj.CoreCompileInputs.cache
