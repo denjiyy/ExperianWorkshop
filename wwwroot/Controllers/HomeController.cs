@@ -4,6 +4,7 @@ using System.Diagnostics;
 
 namespace BankManagementSystem.wwwroot.Controllers
 {
+    [Route("wwwroot/home/[action]")]
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
