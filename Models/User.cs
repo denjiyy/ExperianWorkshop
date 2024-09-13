@@ -51,7 +51,7 @@ namespace BankManagementSystem.Models
         public Status Status { get; set; }
 
         [Required]
-        public DateOnly DateOfBirth { get; set; }
+        public DateTime DateOfBirth { get; set; }
 
         public ICollection<Account> Accounts { get; set; }
 
