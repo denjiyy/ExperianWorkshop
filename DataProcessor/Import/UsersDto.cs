@@ -20,7 +20,7 @@ namespace BankManagementSystem.DataProcessor.Import
         public string Email { get; set; }
 
         [Required]
-        [MaxLength(100)]
+        [MaxLength(30)]
         public string Password { get; set; }
 
         [Required]
