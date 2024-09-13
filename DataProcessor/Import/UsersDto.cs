@@ -1,4 +1,6 @@
-﻿namespace BankManagementSystem.DataProcessor.Import
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace BankManagementSystem.DataProcessor.Import
 {
     public class UsersDto
     {
@@ -8,11 +10,22 @@
             Loans = new HashSet<LoansDto>();
             Accounts = new HashSet<AccountsDto>();
         }
-
+        
+        public int Id { get; set; }
+        
         public string FullName { get; set; }
         public string Username { get; set; }
+
+        [RegularExpression(@"^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$")]
         public string Email { get; set; }
+
+        [Required]
+        [MaxLength(100)]
         public string Password { get; set; }
+
+        [Required]
+        [MaxLength(30)]
+        public string NewPassword { get; set; }
         public bool IsAdministrator { get; set; }
         public string PhoneNumber { get; set; }
         public string Address { get; set; }
