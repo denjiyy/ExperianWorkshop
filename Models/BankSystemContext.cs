@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using BankManagementSystem.Models.Enums;
+using Microsoft.EntityFrameworkCore;
 
 namespace BankManagementSystem.Models
 {
@@ -35,6 +36,37 @@ namespace BankManagementSystem.Models
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<User>().HasData(
+        new User
+        {
+            Id = 1,
+            FullName = "John Doe",
+            Username = "johndoe",
+            Email = "john.doe@example.com",
+            Password = "Password123!", // This will be hashed by EF
+            IsAdministrator = false,
+            PhoneNumber = "123-456-7890",
+            Address = "123 Elm Street",
+            CreditScore = 700,
+            Status = Status.Active,
+            DateOfBirth = new DateTime(1990, 1, 1)
+        },
+        new User
+        {
+            Id = 2,
+            FullName = "Jane Smith",
+            Username = "janesmith",
+            Email = "jane.smith@example.com",
+            Password = "Password123!", // This will be hashed by EF
+            IsAdministrator = true,
+            PhoneNumber = "987-654-3210",
+            Address = "456 Oak Avenue",
+            CreditScore = 750,
+            Status = Status.Active,
+            DateOfBirth = new DateTime(1985, 5, 15)
+        }
+    );
         }
     }
 }

@@ -3,18 +3,16 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Authorization;
 using BankManagementSystem.DataProcessor.Import;
 using BankManagementSystem.Models;
 using BankManagementSystem.Models.Enums;
 using BCrypt.Net;
-using System.Security.Claims;
 
-namespace BankManagementSystem.wwwroot.Controllers
+namespace BankManagementSystem.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize]  // Ensure JWT is required for access to this controller
+    // [Authorize]  // Commenting out authorization for testing
     public class CardsController : ControllerBase
     {
         private readonly BankSystemContext _context;
@@ -77,12 +75,12 @@ namespace BankManagementSystem.wwwroot.Controllers
                 return BadRequest(ModelState);
             }
 
-            // Extract UserId from the JWT token
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(userId))
-            {
-                return Unauthorized("UserId is missing from the token.");
-            }
+            // Commenting out the UserId extraction from JWT token for testing
+            // var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            // if (string.IsNullOrEmpty(userId))
+            // {
+            //     return Unauthorized("UserId is missing from the token.");
+            // }
 
             if (_context.Cards.Any(c => c.CardNumber == dto.CardNumber))
             {
@@ -97,7 +95,7 @@ namespace BankManagementSystem.wwwroot.Controllers
                 CVV = BCrypt.Net.BCrypt.EnhancedHashPassword(dto.CVV),
                 IssueDate = dto.IssueDate,
                 Status = (Status)Enum.Parse(typeof(Status), dto.Status, true),
-                UserId = int.Parse(userId)
+                // UserId = int.Parse(userId)  // Temporarily disabling UserId association for testing
             };
 
             _context.Cards.Add(card);
@@ -126,11 +124,12 @@ namespace BankManagementSystem.wwwroot.Controllers
                 return NotFound();
             }
 
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(userId))
-            {
-                return Unauthorized("UserId is missing from the token.");
-            }
+            // Commenting out the UserId extraction from JWT token for testing
+            // var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            // if (string.IsNullOrEmpty(userId))
+            // {
+            //     return Unauthorized("UserId is missing from the token.");
+            // }
 
             card.CardNumber = dto.CardNumber;
             card.CardType = (CardType)Enum.Parse(typeof(CardType), dto.CardType, true);
@@ -138,7 +137,7 @@ namespace BankManagementSystem.wwwroot.Controllers
             card.Status = (Status)Enum.Parse(typeof(Status), dto.Status, true);
             card.CVV = BCrypt.Net.BCrypt.EnhancedHashPassword(dto.CVV);
             card.IssueDate = dto.IssueDate;
-            card.UserId = int.Parse(userId);
+            // card.UserId = int.Parse(userId);  // Temporarily disabling UserId update for testing
 
             try
             {

@@ -4,17 +4,15 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Authorization;
 using BankManagementSystem.Models;
-using System.Security.Claims;
 using BankManagementSystem.Models.Enums;
 using BankManagementSystem.DataProcessor.Import;
 
-namespace BankManagementSystem.Api.Controllers
+namespace BankManagementSystem.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize] // Ensures the controller requires JWT authentication
+    // [Authorize] // Commenting out authorization for testing
     public class LoansController : ControllerBase
     {
         private readonly BankSystemContext _context;
@@ -28,16 +26,15 @@ namespace BankManagementSystem.Api.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Loan>>> GetLoans()
         {
-            // Extract UserId from the JWT token
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(userId))
-            {
-                return Unauthorized("UserId is missing from the token.");
-            }
+            // Commenting out UserId extraction from JWT token for testing
+            // var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            // if (string.IsNullOrEmpty(userId))
+            // {
+            //     return Unauthorized("UserId is missing from the token.");
+            // }
 
-            // Only get loans for the logged-in user
+            // Temporarily fetch all loans for testing without filtering by user
             var loans = await _context.Loans
-                .Where(l => l.UserId == int.Parse(userId)) // Ensure loans belong to the logged-in user
                 .Include(l => l.User)
                 .ToListAsync();
 
@@ -48,15 +45,16 @@ namespace BankManagementSystem.Api.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<Loan>> GetLoan(int id)
         {
-            // Extract UserId from the JWT token
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(userId))
-            {
-                return Unauthorized("UserId is missing from the token.");
-            }
+            // Commenting out UserId extraction from JWT token for testing
+            // var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            // if (string.IsNullOrEmpty(userId))
+            // {
+            //     return Unauthorized("UserId is missing from the token.");
+            // }
 
+            // Temporarily fetch loan without filtering by user for testing
             var loan = await _context.Loans
-                .Where(l => l.Id == id && l.UserId == int.Parse(userId)) // Ensure loan belongs to the logged-in user
+                .Where(l => l.Id == id)
                 .Include(l => l.User)
                 .FirstOrDefaultAsync();
 
@@ -77,12 +75,12 @@ namespace BankManagementSystem.Api.Controllers
                 return BadRequest(ModelState);
             }
 
-            // Extract UserId from the JWT token
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(userId))
-            {
-                return Unauthorized("UserId is missing from the token.");
-            }
+            // Commenting out UserId extraction from JWT token for testing
+            // var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            // if (string.IsNullOrEmpty(userId))
+            // {
+            //     return Unauthorized("UserId is missing from the token.");
+            // }
 
             var loan = new Loan
             {
@@ -95,6 +93,7 @@ namespace BankManagementSystem.Api.Controllers
                 EndDate = loanDto.EndDate,
                 LoanType = (LoanType)Enum.Parse(typeof(LoanType), loanDto.LoanType, true),
                 LoanStatus = (LoanStatus)Enum.Parse(typeof(LoanStatus), loanDto.LoanStatus, true),
+                // Temporarily skipping UserId association for testing
             };
 
             _context.Loans.Add(loan);
@@ -107,15 +106,15 @@ namespace BankManagementSystem.Api.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateLoan(int id, [FromBody] LoansDto loanDto)
         {
-            // Extract UserId from the JWT token
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(userId))
-            {
-                return Unauthorized("UserId is missing from the token.");
-            }
+            // Commenting out UserId extraction from JWT token for testing
+            // var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            // if (string.IsNullOrEmpty(userId))
+            // {
+            //     return Unauthorized("UserId is missing from the token.");
+            // }
 
             var loan = await _context.Loans
-                .Where(l => l.Id == id && l.UserId == int.Parse(userId)) // Ensure loan belongs to the logged-in user
+                .Where(l => l.Id == id)
                 .FirstOrDefaultAsync();
 
             if (loan == null)
@@ -156,15 +155,15 @@ namespace BankManagementSystem.Api.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteLoan(int id)
         {
-            // Extract UserId from the JWT token
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(userId))
-            {
-                return Unauthorized("UserId is missing from the token.");
-            }
+            // Commenting out UserId extraction from JWT token for testing
+            // var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            // if (string.IsNullOrEmpty(userId))
+            // {
+            //     return Unauthorized("UserId is missing from the token.");
+            // }
 
             var loan = await _context.Loans
-                .Where(l => l.Id == id && l.UserId == int.Parse(userId))  // Ensure loan belongs to the logged-in user
+                .Where(l => l.Id == id)
                 .FirstOrDefaultAsync();
 
             if (loan == null)

@@ -1,8 +1,11 @@
 ﻿using BankManagementSystem.Models.Enums;
+using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 
 namespace BankManagementSystem.Models
 {
+    [Index("Email", IsUnique = true)]
+    [Index("Username", IsUnique = true)]
     public class User
     {
         public User()
@@ -27,22 +30,9 @@ namespace BankManagementSystem.Models
         [MaxLength(30)]
         public string Email { get; set; }
 
-        private string hashedPassword { get; set; }
-
         [Required]
-        [MinLength(5)]
-        [MaxLength(20)]
-        public string Password
-        {
-            get
-            {
-                return hashedPassword;
-            }
-            set
-            {
-                hashedPassword = BCrypt.Net.BCrypt.EnhancedHashPassword(value);
-            }
-        }
+        [MaxLength(30)]
+        public string Password { get; set; }
 
         [Required]
         public bool IsAdministrator { get; set; }
@@ -61,7 +51,7 @@ namespace BankManagementSystem.Models
         public Status Status { get; set; }
 
         [Required]
-        public DateTime DateOfBirth { get; set; }
+        public DateOnly DateOfBirth { get; set; }
 
         public ICollection<Account> Accounts { get; set; }
 

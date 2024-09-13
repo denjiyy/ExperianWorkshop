@@ -3,17 +3,15 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Authorization;
 using BankManagementSystem.Models;
 using BankManagementSystem.Models.Enums;
-using System.Security.Claims;
 using BankManagementSystem.DataProcessor.Import;
 
-namespace BankManagementSystem.wwwroot.Controllers
+namespace BankManagementSystem.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize] // Secures this controller with JWT
+    // [Authorize] // Commenting out the authorization for testing
     public class AccountsController : ControllerBase
     {
         private readonly BankSystemContext _context;
@@ -27,17 +25,17 @@ namespace BankManagementSystem.wwwroot.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAccounts()
         {
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(userId))
-            {
-                return Unauthorized("UserId is missing from the token.");
-            }
+            // Commenting out the user validation since JWT is disabled
+            // var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            // if (string.IsNullOrEmpty(userId))
+            // {
+            //     return Unauthorized("UserId is missing from the token.");
+            // }
 
             var accounts = await _context.Accounts
-                .Where(a => a.UserId == int.Parse(userId))  // Filter accounts by logged-in user
+                // .Where(a => a.UserId == int.Parse(userId))  // Filter accounts by logged-in user (disabled for testing)
                 .Select(a => new
                 {
-                    a.Id,
                     a.AccountNumber,
                     a.Balance,
                     a.AccountType,
@@ -53,14 +51,16 @@ namespace BankManagementSystem.wwwroot.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetAccount(int id)
         {
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(userId))
-            {
-                return Unauthorized("UserId is missing from the token.");
-            }
+            // Commenting out the user validation since JWT is disabled
+            // var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            // if (string.IsNullOrEmpty(userId))
+            // {
+            //     return Unauthorized("UserId is missing from the token.");
+            // }
 
             var account = await _context.Accounts
-                .Where(a => a.Id == id && a.UserId == int.Parse(userId))  // Ensure account belongs to the logged-in user
+                // .Where(a => a.Id == id && a.UserId == int.Parse(userId))  // Ensure account belongs to the logged-in user (disabled for testing)
+                .Where(a => a.Id == id)  // Fetch by account ID only for testing
                 .FirstOrDefaultAsync();
 
             if (account == null)
@@ -88,11 +88,12 @@ namespace BankManagementSystem.wwwroot.Controllers
                 return BadRequest(ModelState);
             }
 
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(userId))
-            {
-                return Unauthorized("UserId is missing from the token.");
-            }
+            // Commenting out the user validation since JWT is disabled
+            // var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            // if (string.IsNullOrEmpty(userId))
+            // {
+            //     return Unauthorized("UserId is missing from the token.");
+            // }
 
             var account = new Account
             {
@@ -100,7 +101,7 @@ namespace BankManagementSystem.wwwroot.Controllers
                 AccountType = (AccountType)Enum.Parse(typeof(AccountType), dto.AccountType, true),
                 Balance = dto.Balance,
                 Status = (Status)Enum.Parse(typeof(Status), dto.Status, true),
-                UserId = int.Parse(userId), // Assign the UserId from the token
+                // UserId = int.Parse(userId), // Assign the UserId from the token (disabled for testing)
                 DateOpened = DateTime.UtcNow
             };
 
@@ -119,14 +120,16 @@ namespace BankManagementSystem.wwwroot.Controllers
                 return BadRequest(ModelState);
             }
 
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(userId))
-            {
-                return Unauthorized("UserId is missing from the token.");
-            }
+            // Commenting out the user validation since JWT is disabled
+            // var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            // if (string.IsNullOrEmpty(userId))
+            // {
+            //     return Unauthorized("UserId is missing from the token.");
+            // }
 
             var account = await _context.Accounts
-                .Where(a => a.Id == id && a.UserId == int.Parse(userId)) // Ensure account belongs to the logged-in user
+                // .Where(a => a.Id == id && a.UserId == int.Parse(userId))  // Ensure account belongs to the logged-in user (disabled for testing)
+                .Where(a => a.Id == id)  // Fetch by account ID only for testing
                 .FirstOrDefaultAsync();
 
             if (account == null)
@@ -161,14 +164,16 @@ namespace BankManagementSystem.wwwroot.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteAccount(int id)
         {
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(userId))
-            {
-                return Unauthorized("UserId is missing from the token.");
-            }
+            // Commenting out the user validation since JWT is disabled
+            // var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            // if (string.IsNullOrEmpty(userId))
+            // {
+            //     return Unauthorized("UserId is missing from the token.");
+            // }
 
             var account = await _context.Accounts
-                .Where(a => a.Id == id && a.UserId == int.Parse(userId))  // Ensure account belongs to the logged-in user
+                // .Where(a => a.Id == id && a.UserId == int.Parse(userId))  // Ensure account belongs to the logged-in user (disabled for testing)
+                .Where(a => a.Id == id)  // Fetch by account ID only for testing
                 .FirstOrDefaultAsync();
 
             if (account == null)

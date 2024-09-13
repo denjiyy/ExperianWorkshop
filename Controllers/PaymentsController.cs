@@ -1,7 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Authorization;
-using System.Security.Claims;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,11 +7,11 @@ using BankManagementSystem.Models;
 using BankManagementSystem.DataProcessor.Import;
 using BankManagementSystem.Models.Enums;
 
-namespace BankManagementSystem.Api.Controllers
+namespace BankManagementSystem.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
+    // [Authorize] // Commenting out authorization for testing
     public class PaymentsController : ControllerBase
     {
         private readonly BankSystemContext _context;
@@ -27,15 +25,16 @@ namespace BankManagementSystem.Api.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<PaymentsDto>>> GetPayments()
         {
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(userId))
-            {
-                return Unauthorized("UserId is missing from the token.");
-            }
+            // Commenting out UserId extraction from JWT token for testing
+            // var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            // if (string.IsNullOrEmpty(userId))
+            // {
+            //     return Unauthorized("UserId is missing from the token.");
+            // }
 
+            // Temporarily fetch all payments for testing without filtering by user
             var payments = await _context.Payments
                 .Include(p => p.Loan)
-                .Where(p => p.Loan.UserId == int.Parse(userId))
                 .ToListAsync();
 
             var paymentDtos = payments.Select(p => new PaymentsDto
@@ -52,20 +51,22 @@ namespace BankManagementSystem.Api.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<PaymentsDto>> GetPayment(int id)
         {
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(userId))
-            {
-                return Unauthorized("UserId is missing from the token.");
-            }
+            // Commenting out UserId extraction from JWT token for testing
+            // var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            // if (string.IsNullOrEmpty(userId))
+            // {
+            //     return Unauthorized("UserId is missing from the token.");
+            // }
 
+            // Temporarily fetch payment without filtering by user for testing
             var payment = await _context.Payments
                 .Include(p => p.Loan)
-                .Where(p => p.Id == id && p.Loan.UserId == int.Parse(userId))
+                .Where(p => p.Id == id)
                 .FirstOrDefaultAsync();
 
             if (payment == null)
             {
-                return NotFound("Payment not found or does not belong to the user.");
+                return NotFound("Payment not found.");
             }
 
             var paymentDto = new PaymentsDto
@@ -89,25 +90,25 @@ namespace BankManagementSystem.Api.Controllers
                 return BadRequest(ModelState);
             }
 
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(userId))
-            {
-                return Unauthorized("UserId is missing from the token.");
-            }
+            // Commenting out UserId extraction from JWT token for testing
+            // var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            // if (string.IsNullOrEmpty(userId))
+            // {
+            //     return Unauthorized("UserId is missing from the token.");
+            // }
 
             if (!Enum.TryParse(dto.CurrencyType, true, out CurrencyType currencyType))
             {
                 return BadRequest("Invalid CurrencyType.");
             }
 
-            // Determine which loan the payment belongs to (this could be handled differently based on your logic)
+            // Temporarily skip user-specific loan retrieval for testing
             var loan = await _context.Loans
-                .Where(l => l.UserId == int.Parse(userId))
                 .FirstOrDefaultAsync(); // Modify this logic if you have a more specific way to find the loan
 
             if (loan == null)
             {
-                return NotFound("No loan found for the user.");
+                return NotFound("No loan found.");
             }
 
             var payment = new Payment
@@ -140,11 +141,12 @@ namespace BankManagementSystem.Api.Controllers
                 return BadRequest(ModelState);
             }
 
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(userId))
-            {
-                return Unauthorized("UserId is missing from the token.");
-            }
+            // Commenting out UserId extraction from JWT token for testing
+            // var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            // if (string.IsNullOrEmpty(userId))
+            // {
+            //     return Unauthorized("UserId is missing from the token.");
+            // }
 
             var payment = await _context.Payments
                 .Include(p => p.Loan)
@@ -153,11 +155,6 @@ namespace BankManagementSystem.Api.Controllers
             if (payment == null)
             {
                 return NotFound();
-            }
-
-            if (payment.Loan.UserId != int.Parse(userId))
-            {
-                return Unauthorized("You do not have access to this payment.");
             }
 
             if (!Enum.TryParse(dto.CurrencyType, true, out CurrencyType currencyType))
@@ -192,11 +189,12 @@ namespace BankManagementSystem.Api.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeletePayment(int id)
         {
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(userId))
-            {
-                return Unauthorized("UserId is missing from the token.");
-            }
+            // Commenting out UserId extraction from JWT token for testing
+            // var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            // if (string.IsNullOrEmpty(userId))
+            // {
+            //     return Unauthorized("UserId is missing from the token.");
+            // }
 
             var payment = await _context.Payments
                 .Include(p => p.Loan)
@@ -205,11 +203,6 @@ namespace BankManagementSystem.Api.Controllers
             if (payment == null)
             {
                 return NotFound();
-            }
-
-            if (payment.Loan.UserId != int.Parse(userId))
-            {
-                return Unauthorized("You do not have access to this payment.");
             }
 
             _context.Payments.Remove(payment);

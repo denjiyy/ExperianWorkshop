@@ -1,7 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Authorization;
-using System.Security.Claims;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,11 +7,11 @@ using BankManagementSystem.Models;
 using BankManagementSystem.DataProcessor.Import;
 using BankManagementSystem.Models.Enums;
 
-namespace BankManagementSystem.Api.Controllers
+namespace BankManagementSystem.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
+    // [Authorize] // Commenting out authorization for testing
     public class TransactionsController : ControllerBase
     {
         private readonly BankSystemContext _context;
@@ -27,15 +25,16 @@ namespace BankManagementSystem.Api.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<TransactionsDto>>> GetTransactions()
         {
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(userId))
-            {
-                return Unauthorized("UserId is missing from the token.");
-            }
+            // Commenting out UserId extraction from JWT token for testing
+            // var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            // if (string.IsNullOrEmpty(userId))
+            // {
+            //     return Unauthorized("UserId is missing from the token.");
+            // }
 
+            // Temporarily fetch all transactions for testing without filtering by user
             var transactions = await _context.Transactions
                 .Include(t => t.Account)
-                .Where(t => t.Account.UserId == int.Parse(userId)) // Filter by the user's account
                 .ToListAsync();
 
             var transactionDtos = transactions.Select(t => new TransactionsDto
@@ -55,20 +54,22 @@ namespace BankManagementSystem.Api.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<TransactionsDto>> GetTransaction(int id)
         {
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(userId))
-            {
-                return Unauthorized("UserId is missing from the token.");
-            }
+            // Commenting out UserId extraction from JWT token for testing
+            // var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            // if (string.IsNullOrEmpty(userId))
+            // {
+            //     return Unauthorized("UserId is missing from the token.");
+            // }
 
+            // Temporarily fetch transaction without filtering by user for testing
             var transaction = await _context.Transactions
                 .Include(t => t.Account)
-                .Where(t => t.Id == id && t.Account.UserId == int.Parse(userId)) // Ensure the transaction belongs to the user's account
+                .Where(t => t.Id == id)
                 .FirstOrDefaultAsync();
 
             if (transaction == null)
             {
-                return NotFound("Transaction not found or does not belong to the user.");
+                return NotFound("Transaction not found.");
             }
 
             var transactionDto = new TransactionsDto
@@ -93,11 +94,12 @@ namespace BankManagementSystem.Api.Controllers
                 return BadRequest(ModelState);
             }
 
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(userId))
-            {
-                return Unauthorized("UserId is missing from the token.");
-            }
+            // Commenting out UserId extraction from JWT token for testing
+            // var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            // if (string.IsNullOrEmpty(userId))
+            // {
+            //     return Unauthorized("UserId is missing from the token.");
+            // }
 
             if (!Enum.TryParse(dto.TransactionType, true, out TransactionType transactionType))
             {
@@ -114,12 +116,13 @@ namespace BankManagementSystem.Api.Controllers
                 return BadRequest("Invalid CurrencyType.");
             }
 
+            // Temporarily skip user-specific account retrieval for testing
             var account = await _context.Accounts
-                .FirstOrDefaultAsync(a => a.UserId == int.Parse(userId)); // Get the user's account
+                .FirstOrDefaultAsync(); // Modify this logic if you have a more specific way to find the account
 
             if (account == null)
             {
-                return NotFound("No account found for the user.");
+                return NotFound("No account found.");
             }
 
             var transaction = new Transaction
@@ -158,11 +161,12 @@ namespace BankManagementSystem.Api.Controllers
                 return BadRequest(ModelState);
             }
 
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(userId))
-            {
-                return Unauthorized("UserId is missing from the token.");
-            }
+            // Commenting out UserId extraction from JWT token for testing
+            // var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            // if (string.IsNullOrEmpty(userId))
+            // {
+            //     return Unauthorized("UserId is missing from the token.");
+            // }
 
             var transaction = await _context.Transactions
                 .Include(t => t.Account)
@@ -171,11 +175,6 @@ namespace BankManagementSystem.Api.Controllers
             if (transaction == null)
             {
                 return NotFound();
-            }
-
-            if (transaction.Account.UserId != int.Parse(userId))
-            {
-                return Unauthorized("You do not have access to this transaction.");
             }
 
             if (!Enum.TryParse(dto.TransactionType, true, out TransactionType transactionType))
@@ -223,11 +222,12 @@ namespace BankManagementSystem.Api.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteTransaction(int id)
         {
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(userId))
-            {
-                return Unauthorized("UserId is missing from the token.");
-            }
+            // Commenting out UserId extraction from JWT token for testing
+            // var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            // if (string.IsNullOrEmpty(userId))
+            // {
+            //     return Unauthorized("UserId is missing from the token.");
+            // }
 
             var transaction = await _context.Transactions
                 .Include(t => t.Account)
@@ -236,11 +236,6 @@ namespace BankManagementSystem.Api.Controllers
             if (transaction == null)
             {
                 return NotFound();
-            }
-
-            if (transaction.Account.UserId != int.Parse(userId))
-            {
-                return Unauthorized("You do not have access to this transaction.");
             }
 
             _context.Transactions.Remove(transaction);

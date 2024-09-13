@@ -1,9 +1,11 @@
 ﻿using BankManagementSystem.Models.Enums;
+using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace BankManagementSystem.Models
 {
+    [Index("CardNumber", IsUnique = true)]
     public class Card
     {
         [Key]
@@ -12,20 +14,8 @@ namespace BankManagementSystem.Models
         [Required]
         public CardType CardType { get; set; }
 
-        private string hashedCardNumber { get; set; }
-
         [Required]
-        public string CardNumber
-        {
-            get
-            {
-                return hashedCardNumber;
-            }
-            set
-            {
-                hashedCardNumber = BCrypt.Net.BCrypt.EnhancedHashPassword(value);
-            }
-        }
+        public string CardNumber { get; set; }
 
         [Required]
         public string CVV { get; set; }
