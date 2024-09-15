@@ -2,10 +2,14 @@ import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import {QueryClient,QueryClientProvider} from "@tanstack/react-query"
 import { ThemeProvider } from 'styled-components';
+import { store } from "./actions/store"
+import { Provider } from 'react-redux';
 import { GlobalStyles,theme } from './styles';
 import * as S from "./pages"
+import * as V from "./users/UsersController"
 function App() {
   return (
+    <Provider store={store}>
     <div className="App">
       <GlobalStyles/>
       <Router>
@@ -13,10 +17,13 @@ function App() {
           <Route path='/' element={<S.HomePage/>}/>
           <Route path='/login' element={<S.LoginUpPage/>}/>
           <Route path='/signup' element={<S.SignUpPage/>}/>
+          <Route path='/duser' element={<V.default/>}/>
+      
         </Routes>
       </Router>
       
     </div>
+    </Provider>
   );
 }
 export default App;

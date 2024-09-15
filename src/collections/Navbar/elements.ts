@@ -16,6 +16,11 @@ width: 24.257px;
 height: 37.041px;
 flex-shrink: 0;
 `)
+export const ProfileLogo = (styled)(_icon)(()=>css`
+width: 25px;
+height: 25px;
+flex-shrink: 0;
+`)
 export const LogoCaption = styled(_h4)(()=>css`
 color:#14151A;
 font-weight:700;

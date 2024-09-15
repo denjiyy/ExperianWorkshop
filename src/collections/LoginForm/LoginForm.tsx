@@ -12,36 +12,13 @@ export const LoginForm = ({ ...props }) => {
       password: "",
     },
   });
-  useEffect(() => {
-    if (Object.keys(errors).length > 0) {
-      setHasError(true);
-      console.log(hasError)
+  // const submitHandler = handleSubmit(async({email,password})=>{
 
-    } else {
-      setHasError(false);
-      console.log(hasError)
-    }
-  }, [errors]);
-  const submitHandler = handleSubmit(async({email,password})=>{
-
-    try {
-      console.log(email, password); 
-    } catch (error:any) {
-      // Handle the submission error here if necessary
-      setHasError(true);
-      setError(error.message);
-      console.log(hasError)
-         }  })
-         const ErrorHandler = ()=>{
-          if (Object.keys(errors).length > 0) {
-            setHasError(true);
-            console.log(hasError)
-      
-          } else {
-            setHasError(false);
-            console.log(hasError)
-          }
-         }
+  // })
+  const submitHandler = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    // your form submission logic
+  };
       
   return (
     // <S.FormContainer {...props}>
@@ -99,8 +76,8 @@ export const LoginForm = ({ ...props }) => {
       <S.ErrorMess>{errors.password?.message?.toString()}</S.ErrorMess>
           </S.FormDiv>
         <S.LabelInput>Don't Have an Account? <S.NavbarLink to="/"> Sign up</S.NavbarLink></S.LabelInput>
-        {hasError ? <S.Buttonn variant="secondary" type="submit" onClick={ErrorHandler} disabled long >Sign up</S.Buttonn>:
-        <S.Buttonn variant="secondary" type="submit" onClick={ErrorHandler}  long >Sign up</S.Buttonn>
+        {hasError ? <S.Buttonn variant="secondary" type="submit"  disabled long >Sign up</S.Buttonn>:
+        <S.Buttonn variant="secondary" type="submit"   long >Sign up</S.Buttonn>
         }
           
         </S.FormInputContainer>

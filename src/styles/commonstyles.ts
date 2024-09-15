@@ -66,7 +66,6 @@ line-height: 100%;
 letter-spacing: -2.1px;
     `,
     medium:css`
-text-align: center;
 font-feature-settings: 'cv12' on, 'cv13' on;
 /* Headline/H1 Medium */
  font-size: 70px;
@@ -95,7 +94,6 @@ letter-spacing: -0.48px;`
 },
 body:{
     large:css`
-text-align: center;
 font-feature-settings: 'cv12' on, 'cv13' on;
 
 /* Body/Lg Medium */
@@ -106,7 +104,6 @@ line-height: 26px; /* 144.444% */
 letter-spacing: -0.36px;`,
     medium:{
         medium:css`
-text-align: center;
 
 /* Body/Md Medium */
 font-size: 14px;
