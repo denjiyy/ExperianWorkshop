@@ -1,5 +1,5 @@
 import { AppDispatch } from "./store";
-import api from "./api";
+import api from "./apiCRUDSlice";
 import { SignUpProps } from "../types/form";
 // export const create = (data:any) =>{
 //     return({
@@ -18,6 +18,7 @@ export const ACTION_TYPES = {
   CREATE: "CREATE",
   UPDATE: "UPDATE",
   DELETE: "DELETE",
+  FETCH_ID:"FETCH_ID",
   FETCH_ALL: "FETCH_ALL",
 };
 
@@ -39,16 +40,34 @@ export const fetchAll = () => (dispatch: AppDispatch) => {
     })
     .catch((err) => console.log(err));
 };
-export const create = ({data,onSuccess}:onCreateProps)=>  (dispatch: AppDispatch) =>{
-// data = FormateDate(data)
-api.dUser({}).create(data).then(async(res)=>{
-  const result =await res.json()
-  dispatch({
-    type:ACTION_TYPES.CREATE,
-    payload:result
+export const fetchById = ({id}:onUpdateProps) => (dispatch:AppDispatch)=>{
+  api.dUser({}).fetchById(id).then((res)=>{
+    dispatch({
+      type:ACTION_TYPES.FETCH_ID,
+      payload:res.data,
+    })
   })
-  // onSuccess()
-}).catch(err=>console.log(err))
+}
+// export const create = ({data,onSuccess}:onCreateProps)=>  (dispatch: AppDispatch) =>{
+// // data = FormateDate(data)
+// window.alert(data)
+// const res =  api.dUser({}).create(data).then((res)=>{
+//    const result = res.json()
+//   dispatch({
+//     type:ACTION_TYPES.CREATE,
+//     payload:res
+//   })
+//   // onSuccess()
+// }).catch(err=>console.log(err))
+// }
+export const create = (data:SignUpProps)=> (dispatch:AppDispatch)=>{
+   api.dUser({}).create(data).then(res=>{
+    console.log("API Response:",res.data);
+    dispatch({
+      type:ACTION_TYPES.CREATE,
+      payload:res.data
+    })
+  }).catch(err=>console.log((err)))
 }
 export const update = ({id,data,onSuccess}:onUpdateProps)=>  (dispatch: AppDispatch) =>{
   // data = FormateDate(data)

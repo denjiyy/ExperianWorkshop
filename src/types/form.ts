@@ -1,8 +1,8 @@
 export interface SignUpProps {
-    name:string;
+    username:string;
     fullName:string;
     email:string;
-    password:RegExp;
+    password:string;
     confirmPassword:string;
     phoneNumber:string;
     address:string;

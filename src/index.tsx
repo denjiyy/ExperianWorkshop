@@ -4,21 +4,22 @@ import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 import axios from 'axios';
+import { Provider } from 'react-redux';
+import { store } from './actions/store';
+import { AuthProvider } from './axios_auth/context/AuthProvider';
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
 );
-axios.interceptors.request.use((request)=>{
-  console.log(request)
-  request.headers['Content-Type']='application/json'
-  return request
-})
-axios.defaults.headers.post['Content-Type'] = 'application/json'; 
 
 
 root.render(
   <React.StrictMode>
+    <AuthProvider>
+    <Provider store={store}>
     <App />
+  </Provider>
+  </AuthProvider>
   </React.StrictMode>
 );
 

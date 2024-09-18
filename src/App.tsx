@@ -7,23 +7,39 @@ import { Provider } from 'react-redux';
 import { GlobalStyles,theme } from './styles';
 import * as S from "./pages"
 import * as V from "./users/UsersController"
+import { RequireAuth } from './collections/LoginForm/RequireAuth';
+import { Welcome } from './collections/LoginForm/RequireAuth/Welcome';
+import Layout from './actions/Layout';
 function App() {
   return (
-    <Provider store={store}>
+    
     <div className="App">
       <GlobalStyles/>
-      <Router>
+      {/* <Router>
         <Routes>
           <Route path='/' element={<S.HomePage/>}/>
           <Route path='/login' element={<S.LoginUpPage/>}/>
           <Route path='/signup' element={<S.SignUpPage/>}/>
           <Route path='/duser' element={<V.default/>}/>
       
-        </Routes>
+          </Routes>
+          </Router> */}
+      <Router>
+      <Routes>
+        <Route path="/" element={<Layout/>}>
+          <Route index element ={<S.HomePage/>}/>
+          <Route path="/login" element={<S.LoginUpPage/>}/>
+          <Route path='/signup' element={<S.SignUpPage/>}/>
+
+          <Route element={<RequireAuth/>}>
+          <Route path="/welcome" element={<Welcome/>}/>
+          </Route>
+          
+        </Route>
+      </Routes>
       </Router>
       
     </div>
-    </Provider>
   );
 }
 export default App;

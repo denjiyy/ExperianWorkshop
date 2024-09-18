@@ -14,7 +14,7 @@ export const DUser = (state:DUserState=initialState,action:DUserAction) =>{
             case ACTION_TYPES.CREATE:
                 return{
                     ...state,
-                    list:[...state.list,action.payload]
+                    list:[action.payload]
                 }
                 case ACTION_TYPES.UPDATE:
                     return{

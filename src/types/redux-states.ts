@@ -1,5 +1,10 @@
 export  interface DUserState{
     list:any[],
+   
+}
+export interface UserLoginState{
+    token?:any,
+    user?:any;
 }
 export interface DUserAction {
     type: string;

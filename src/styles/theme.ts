@@ -12,6 +12,6 @@ export const theme : DefaultTheme = {
     -webkit-text-fill-color: transparent;font-feature-settings: 'cv12' on, 'cv13' on;`
     },
     breakpoint:{
-
+        
     },
 }
