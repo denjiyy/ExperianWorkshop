@@ -3,7 +3,7 @@ import {typography} from "./commonstyles"
 
 export const theme : DefaultTheme = {
     colors: {
-        
+        //то адд
     },
     typography,
     gradients:{
@@ -12,6 +12,7 @@ export const theme : DefaultTheme = {
     -webkit-text-fill-color: transparent;font-feature-settings: 'cv12' on, 'cv13' on;`
     },
     breakpoint:{
+        //то адд
 
     },
 }

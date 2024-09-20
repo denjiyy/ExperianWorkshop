@@ -14,51 +14,43 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 
-function Transactions() {
-  const [transactions, setTransactions] = useState([]);
-  const [filteredTransactions, setFilteredTransactions] = useState([]);
+function LoanListAdmin() {
+  const [loans, setTransactions] = useState([]);
+  const [filteredLoans, setFilteredLoaans] = useState([]);
   const [startDate, setStartDate] = useState<Dayjs | null>(null);
   const [endDate, setEndDate] = useState<Dayjs | null>(null);
   useEffect(() => {
     setTransactions([
       {
-        id: 0,
-        currency: "BGN",
-        accountId: 5,
-        status: "pending",
-        type: "uu",
-        amount: 2000,
         date: 1413561532,
-        description: "",
+        owner: "Gosho",
+        type: "personal",
+        amount: 2000,
       },
       {
-        id: 1,
-        currency: "BGN",
-        accountId: 5,
-        status: "nnn",
-        type: "uu",
-        amount: 2200,
         date: 1413561532,
-        description: "",
+        owner: "Pesho",
+        type: "personal",
+        amount: 25000,
       },
     ]);
   }, []);
 
-  // // Fetch transactions once when the component mounts
+  // // Fetch loans once when the component mounts
   // useEffect(() => {
-  //   axios.get('http://localhost:5000/api/transactions')
+  //   axios.get('http://localhost:5000/api/loans')
   //     .then(response => {
   //       setTransactions(response.data);
-  //       setFilteredTransactions(response.data);  // Initially show all transactions
+  //       setFilteredTransactions(response.data);  // Initially show all loans
   //     })
   //     .catch(error => {
-  //       console.error('Error fetching transactions:', error);
+  //       console.error('Error fetching loans:', error);
   //     });
   // }, []);
 
   useEffect(() => {
-    const filterTransactions = () => {
-      const filtered = transactions.filter((transaction) => {
+    const filterLoans = () => {
+      const filtered = loans.filter((transaction) => {
         const transactionDate = dayjs(transaction.date); // Convert to Dayjs object
 
         if (startDate && transactionDate.isBefore(dayjs(startDate))) {
@@ -71,18 +63,18 @@ function Transactions() {
 
         return true;
       });
-      setFilteredTransactions(filtered);
+      setFilteredLoaans(filtered);
     };
 
-    // Call the function only if transactions are fetched
-    if (transactions.length > 0) {
-      filterTransactions();
+    // Call the function only if loans are fetched
+    if (loans.length > 0) {
+      filterLoans();
     }
-  }, [startDate, endDate, transactions, filteredTransactions]);
+  }, [startDate, endDate, loans, filteredLoans]);
 
   return (
-    <div className="Transactions">
-      <h1>Previous Transactions</h1>
+    <div className="loans">
+      <h1>Loans to approve</h1>
       <div className="date-picker">
         <LocalizationProvider dateAdapter={AdapterDayjs}>
           <DemoContainer components={["DatePicker"]}>
@@ -107,28 +99,28 @@ function Transactions() {
         <Table sx={{ minWidth: 650 }} aria-label="simple table">
           <TableHead>
             <TableRow>
-              <TableCell>Transactions</TableCell>
-              <TableCell align="right">Description</TableCell>
-              <TableCell align="right">Currency</TableCell>
+              <TableCell>Loans</TableCell>
               <TableCell align="right">Date</TableCell>
+              <TableCell align="right">Owner</TableCell>
+              <TableCell align="right">Type</TableCell>
               <TableCell align="right">Amount</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {filteredTransactions.map((transaction) => (
+            {filteredLoans.map((loan) => (
               <TableRow
-                key={transaction.id}
+                key={loan.id}
                 sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
               >
                 <TableCell component="th" scope="row">
-                  {transaction.id}
+                  {loan.id}
                 </TableCell>
-                <TableCell align="right">{transaction.description}</TableCell>
-                <TableCell align="right">{transaction.currency}</TableCell>
                 <TableCell align="right">
-                  {new Date(transaction.date).toLocaleDateString()}
+                  {new Date(loan.date).toLocaleDateString()}
                 </TableCell>
-                <TableCell align="right">{transaction.amount}</TableCell>
+                <TableCell align="right">{loan.owner}</TableCell>
+                <TableCell align="right">{loan.type}</TableCell>
+                <TableCell align="right">{loan.amount}</TableCell>
               </TableRow>
             ))}
           </TableBody>
@@ -138,4 +130,4 @@ function Transactions() {
   );
 }
 
-export default Transactions;
+export default LoanListAdmin;

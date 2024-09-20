@@ -1,19 +1,28 @@
-import React from 'react';
+import React from "react";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
-import {QueryClient,QueryClientProvider} from "@tanstack/react-query"
-import { ThemeProvider } from 'styled-components';
-import { GlobalStyles,theme } from './styles';
-import * as S from "./collections/LoginForm"
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ThemeProvider } from "styled-components";
+import { GlobalStyles, theme } from "./styles";
+import * as S from "./collections/LoginForm";
+import { MaterialUIControllerProvider } from "./context"; // make sure this path is correct src/context/index.js
+// import Transactions from './collections/TransactionsHistory/TransactionHistory';
+import LoanApply from "./collections/LoanApply/LoanApply";
+import LoanListAdmin from "./collections/LoansListAdmin/LoansListAdmin"; 
+
+
 function App() {
   return (
     <div className="App">
-      <GlobalStyles/>
-      <Router>
+      <MaterialUIControllerProvider>
+        <LoanApply />
+        <LoanListAdmin/>
+        <GlobalStyles />
+        {/* <Router>
         <Routes>
           <Route path='/' element={<S.LoginForm/>}/>
         </Routes>
-      </Router>
-      
+      </Router> */}
+      </MaterialUIControllerProvider>
     </div>
   );
 }

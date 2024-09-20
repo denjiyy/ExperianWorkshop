@@ -1,7 +1,14 @@
 {
-    "compilerOptions": {
-      "moduleResolution": "node",
-      "esModuleInterop": true,
-      "jsx": "react"
+  "compilerOptions": {
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "jsx": "react-jsx",
+    "allowSyntheticDefaultImports": true,
+    "module": "esnext", // You can also use 'es2020' if needed
+    "target": "es2020",
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["scr/*"]
     }
   }
+}
