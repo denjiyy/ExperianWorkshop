@@ -1,0 +1,24 @@
+.input-calc {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: center;
+  padding: 12px;
+}
+.input {
+  display: flex;
+  padding: 3px;
+  flex-direction: column;
+
+  width: 300px;
+}
+.calc-installment {
+  padding: 3px;
+  justify-content: center;
+  align-content: center;
+}
+.loan-apply-form {
+  display: flex;
+  flex-direction: column;
+  /* justify-content: center; */
+}

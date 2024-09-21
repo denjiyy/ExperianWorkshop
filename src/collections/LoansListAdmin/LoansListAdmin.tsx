@@ -15,12 +15,14 @@ import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 
 function LoanListAdmin() {
-  const [loans, setTransactions] = useState([]);
-  const [filteredLoans, setFilteredLoaans] = useState([]);
+  const [loans, setLoans] = useState([]);
+  const [filteredLoans, setFilteredLoans] = useState([]);
   const [startDate, setStartDate] = useState<Dayjs | null>(null);
   const [endDate, setEndDate] = useState<Dayjs | null>(null);
+  const [error, setError] = useState("");
+
   useEffect(() => {
-    setTransactions([
+    setLoans([
       {
         date: 1413561532,
         owner: "Gosho",
@@ -36,41 +38,48 @@ function LoanListAdmin() {
     ]);
   }, []);
 
-  // // Fetch loans once when the component mounts
-  // useEffect(() => {
-  //   axios.get('http://localhost:5000/api/loans')
-  //     .then(response => {
-  //       setTransactions(response.data);
-  //       setFilteredTransactions(response.data);  // Initially show all loans
-  //     })
-  //     .catch(error => {
-  //       console.error('Error fetching loans:', error);
-  //     });
-  // }, []);
-
   useEffect(() => {
     const filterLoans = () => {
-      const filtered = loans.filter((transaction) => {
-        const transactionDate = dayjs(transaction.date); // Convert to Dayjs object
+      const filtered = loans.filter((loan) => {
+        const loanDate = dayjs(loan.date * 1000); // Ensure the timestamp is in milliseconds
 
-        if (startDate && transactionDate.isBefore(dayjs(startDate))) {
+        if (startDate && loanDate.isBefore(startDate)) {
           return false;
         }
 
-        if (endDate && transactionDate.isAfter(dayjs(endDate))) {
+        if (endDate && loanDate.isAfter(endDate)) {
           return false;
         }
 
         return true;
       });
-      setFilteredLoaans(filtered);
+
+      setFilteredLoans(filtered);
     };
 
-    // Call the function only if loans are fetched
     if (loans.length > 0) {
       filterLoans();
     }
-  }, [startDate, endDate, loans, filteredLoans]);
+  }, [startDate, endDate, loans]);
+
+  const handleStartDateChange = (newValue) => {
+    setStartDate(newValue);
+    if (endDate && newValue && dayjs(newValue).isAfter(endDate)) {
+      setEndDate(null); // Reset end date if it becomes invalid
+      setError("End date should be after the start date");
+    } else {
+      setError("");
+    }
+  };
+
+  const handleEndDateChange = (newValue) => {
+    if (startDate && newValue && dayjs(newValue).isBefore(startDate)) {
+      setError("End date should be after the start date");
+    } else {
+      setEndDate(newValue);
+      setError("");
+    }
+  };
 
   return (
     <div className="loans">
@@ -79,8 +88,9 @@ function LoanListAdmin() {
         <LocalizationProvider dateAdapter={AdapterDayjs}>
           <DemoContainer components={["DatePicker"]}>
             <DatePicker
+              label="Start Date"
               value={startDate}
-              onChange={(newValue) => setStartDate(newValue)}
+              onChange={handleStartDateChange}
             />
           </DemoContainer>
         </LocalizationProvider>
@@ -88,12 +98,16 @@ function LoanListAdmin() {
         <LocalizationProvider dateAdapter={AdapterDayjs}>
           <DemoContainer components={["DatePicker"]}>
             <DatePicker
+              label="End Date"
               value={endDate}
-              onChange={(newValue) => setEndDate(newValue)}
+              minDate={startDate} // Ensure end date is after start date
+              onChange={handleEndDateChange}
             />
           </DemoContainer>
         </LocalizationProvider>
       </div>
+
+      {error && <p style={{ color: "red" }}>{error}</p>}
 
       <TableContainer component={Paper}>
         <Table sx={{ minWidth: 650 }} aria-label="simple table">
@@ -107,16 +121,16 @@ function LoanListAdmin() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {filteredLoans.map((loan) => (
+            {filteredLoans.map((loan, index) => (
               <TableRow
-                key={loan.id}
+                key={index}
                 sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
               >
                 <TableCell component="th" scope="row">
                   {loan.id}
                 </TableCell>
                 <TableCell align="right">
-                  {new Date(loan.date).toLocaleDateString()}
+                  {dayjs(loan.date * 1000).format("DD/MM/YYYY")}
                 </TableCell>
                 <TableCell align="right">{loan.owner}</TableCell>
                 <TableCell align="right">{loan.type}</TableCell>

@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Button, MenuItem, TextField, Box } from "@mui/material";
-import MDButton from "../../components/MDButton";
-import MDBox from "../../components/MDBox";
+// import MDButton from "../../components/MDButton";
 
 import "./LoanApply.css"; // Importing the CSS file
 
@@ -85,98 +84,116 @@ function LoanApply() {
   };
 
   return (
-    <MDBox component="form" className="loan-apply-form">
-      {" "}
-      {/* Apply CSS class */}
-      <div>
-        <TextField id="outlined-basic" label="Name" variant="outlined" />
-
-        <TextField
-          id="outlined-select-currency"
-          select
-          label="Currency"
-          value={selectedCurrency}
-          onChange={(event) => setSelectedCurrency(event.target.value)}
-          helperText="Please select your currency"
-        >
-          {currencies.map((option) => (
-            <MenuItem key={option.value} value={option.value}>
-              {option.label}
-            </MenuItem>
-          ))}
-        </TextField>
-
-        <TextField
-          id="outlined-select-type"
-          select
-          value={selectedLoanType}
-          label="Loan Type"
-          onChange={handleLoanTypeChange}
-          helperText="Please select your loan type"
-        >
-          <MenuItem value="personal">Personal Loan</MenuItem>
-          <MenuItem value="mortgage">Mortgage Loan</MenuItem>
-          <MenuItem value="student">Student Loan</MenuItem>
-        </TextField>
-
-        {selectedLoanType && (
+    <Box component="form" className="loan-apply-form">
+      <h1>Apply for loan</h1>
+      <div className="input-calc">
+        <div className="input">
           <TextField
-            label="Loan Amount"
-            type="number"
-            value={loanAmount}
-            onChange={handleAmountChange}
-            slotProps={{
-              input: {
-                inputProps: {
-                  min: amountRange[selectedLoanType]?.min,
-                  max: amountRange[selectedLoanType]?.max,
-                },
-              },
-            }}
-            helperText={`Enter an amount between ${amountRange[selectedLoanType]?.min} and ${amountRange[selectedLoanType]?.max}`}
+            id="outlined-basic"
+            label="Name"
+            variant="outlined"
+            helperText="Enter your full name"
           />
-        )}
 
-        {selectedLoanType && (
           <TextField
-            label="Select Months"
-            type="number"
-            value={selectedMonths}
-            onChange={handleMonthChange}
-            slotProps={{
-              input: {
-                inputProps: {
-                  min: monthRange[selectedLoanType]?.min,
-                  max: monthRange[selectedLoanType]?.max,
+            id="outlined-select-currency"
+            select
+            label="Currency"
+            value={selectedCurrency}
+            onChange={(event) => setSelectedCurrency(event.target.value)}
+            helperText="Please select your currency"
+          >
+            {currencies.map((option) => (
+              <MenuItem key={option.value} value={option.value}>
+                {option.label}
+              </MenuItem>
+            ))}
+          </TextField>
+
+          <TextField
+            id="outlined-select-type"
+            select
+            value={selectedLoanType}
+            label="Loan Type"
+            onChange={handleLoanTypeChange}
+            helperText="Please select your loan type"
+          >
+            <MenuItem value="personal">Personal Loan</MenuItem>
+            <MenuItem value="mortgage">Mortgage Loan</MenuItem>
+            <MenuItem value="student">Student Loan</MenuItem>
+          </TextField>
+
+          {selectedLoanType && (
+            <TextField
+              label="Loan Amount"
+              type="number"
+              value={loanAmount}
+              onChange={handleAmountChange}
+              slotProps={{
+                input: {
+                  inputProps: {
+                    min: amountRange[selectedLoanType]?.min,
+                    max: amountRange[selectedLoanType]?.max,
+                  },
                 },
-              },
-            }}
-            helperText={`Choose between ${monthRange[selectedLoanType]?.min} and ${monthRange[selectedLoanType]?.max} months`}
-          />
-        )}
-      </div>
-      <div>
-        <MDButton onClick={handleCalculateClick}>
-          Calculate Monthly Installment
-        </MDButton>
-        {monthlyInstallment !== null && (
-          <div>
-            <h3>
-              Monthly Installment: {monthlyInstallment}{" "}
-              {
-                currencies.find((curr) => curr.value === selectedCurrency)
-                  ?.label
-              }
+              }}
+              helperText={`Enter an amount between ${amountRange[selectedLoanType]?.min} and ${amountRange[selectedLoanType]?.max}`}
+            />
+          )}
+
+          {selectedLoanType && (
+            <TextField
+              label="Select Months"
+              type="number"
+              value={selectedMonths}
+              onChange={handleMonthChange}
+              slotProps={{
+                input: {
+                  inputProps: {
+                    min: monthRange[selectedLoanType]?.min,
+                    max: monthRange[selectedLoanType]?.max,
+                  },
+                },
+              }}
+              helperText={`Choose between ${monthRange[selectedLoanType]?.min} and ${monthRange[selectedLoanType]?.max} months`}
+            />
+          )}
+        </div>
+        <div className="calc-installment">
+          <Button onClick={handleCalculateClick}>
+            Calculate Monthly Installment
+          </Button>
+          {monthlyInstallment !== null && (
+            <div>
+              <h3 style={{ justifyContent: "center", display: "flex" }}>
+                Monthly Installment: {monthlyInstallment}{" "}
+                {
+                  currencies.find((curr) => curr.value === selectedCurrency)
+                    ?.label
+                }
+              </h3>
+            </div>
+          )}
+
+          {falseData && (
+            <h3
+              style={{
+                color: "red",
+                justifyContent: "center",
+                display: "flex",
+              }}
+            >
+              Input data incorrect
             </h3>
-          </div>
-        )}
-        {falseData && <h3>Input data incorrect</h3>}
+          )}
+        </div>
       </div>
-
-      <MDButton variant="contained" type="submit">
-        Apply
-      </MDButton>
-    </MDBox>
+      <div style={{ justifyContent: "center", display: "flex" }}>
+        <Button variant="contained" type="submit">
+          Apply
+        </Button>
+      </div>
+    </Box>
   );
 }
 
