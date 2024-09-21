@@ -8,5 +8,6 @@
         public string TransactionStatus { get; set; }
         public string CurrencyType { get; set; }
         public DateOnly Timestamp { get; set; }
+        public string Recipient { get; set; }
     }
 }

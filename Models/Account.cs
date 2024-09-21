@@ -27,9 +27,6 @@ namespace BankManagementSystem.Models
         public decimal Balance { get; set; }
 
         [Required]
-        public decimal OverdraftLimit { get; set; }
-
-        [Required]
         public CurrencyType CurrencyType { get; set; }
 
         [Required]

@@ -8,8 +8,7 @@ namespace BankManagementSystem.Models
     {
         [Key]
         public int Id { get; set; }
-
-        [Required]
+        
         public PaymentMethod PaymentMethod { get; set; }
 
         [Required]
@@ -17,9 +16,6 @@ namespace BankManagementSystem.Models
 
         [Required]
         public CurrencyType CurrencyType { get; set; }
-
-        //to track any fees associated with the payment
-        public decimal Fee { get; set; }
 
         [Required]
         public DateOnly Date { get; set; }

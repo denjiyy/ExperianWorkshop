@@ -1,137 +1,130 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Http;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Linq;
 using BankManagementSystem.Models;
 using BankManagementSystem.Models.Enums;
 using BankManagementSystem.DataProcessor;
-using Microsoft.AspNetCore.Authorization;
-using System.Security.Claims;
 
 namespace BankManagementSystem.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize] // Commenting out authorization for testing
     public class PaymentsController : ControllerBase
     {
         private readonly BankSystemContext _context;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public PaymentsController(BankSystemContext context)
+        public PaymentsController(BankSystemContext context, IHttpContextAccessor httpContextAccessor)
         {
             _context = context;
+            _httpContextAccessor = httpContextAccessor;
+        }
+
+        private async Task<User> GetLoggedInUser()
+        {
+            var userId = _httpContextAccessor.HttpContext?.Session.GetString("UserId");
+            if (userId != null)
+            {
+                return await _context.Users.FindAsync(int.Parse(userId));
+            }
+            return null!;
         }
 
         // GET: api/Payments
         [HttpGet]
         public async Task<ActionResult<IEnumerable<PaymentsDto>>> GetPayments()
         {
-            // Commenting out UserId extraction from JWT token for testing
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(userId))
+            var loggedInUser = await GetLoggedInUser();
+            if (loggedInUser == null)
             {
-                return Unauthorized("UserId is missing from the token.");
+                return Unauthorized("User is not logged in.");
             }
 
-            // Temporarily fetch all payments for testing without filtering by user
             var payments = await _context.Payments
                 .Include(p => p.Loan)
+                .Where(p => p.Loan.UserId == loggedInUser.Id)
                 .ToListAsync();
 
-            var paymentDtos = payments.Select(p => new PaymentsDto
+            var paymentDto = payments.Select(p => new PaymentsDto
             {
+                PaymentMethod = p.PaymentMethod.ToString(),
                 Amount = p.Amount,
                 Date = p.Date,
-                CurrencyType = p.CurrencyType.ToString() // Convert enum to string
+                CurrencyType = p.CurrencyType.ToString()
             }).ToList();
 
-            return Ok(paymentDtos);
+            return Ok(paymentDto);
         }
 
         // GET: api/Payments/5
         [HttpGet("{id}")]
         public async Task<ActionResult<PaymentsDto>> GetPayment(int id)
         {
-            // Commenting out UserId extraction from JWT token for testing
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(userId))
+            var loggedInUser = await GetLoggedInUser();
+            if (loggedInUser == null)
             {
-                return Unauthorized("UserId is missing from the token.");
+                return Unauthorized("User is not logged in.");
             }
 
-            // Temporarily fetch payment without filtering by user for testing
             var payment = await _context.Payments
                 .Include(p => p.Loan)
-                .Where(p => p.Id == id)
+                .Where(p => p.Id == id && p.Loan.UserId == loggedInUser.Id)
                 .FirstOrDefaultAsync();
 
             if (payment == null)
             {
-                return NotFound("Payment not found.");
+                return NotFound("Payment not found or access denied.");
             }
 
             var paymentDto = new PaymentsDto
             {
                 PaymentMethod = payment.PaymentMethod.ToString(),
-                Fee = payment.Fee,
                 Amount = payment.Amount,
                 Date = payment.Date,
-                CurrencyType = payment.CurrencyType.ToString() // Convert enum to string
+                CurrencyType = payment.CurrencyType.ToString()
             };
 
             return Ok(paymentDto);
         }
 
         // POST: api/Payments
-        [HttpPost]
-        public async Task<ActionResult<PaymentsDto>> CreatePayment([FromBody] PaymentsDto dto)
+        [HttpPost("{loanId}")]
+        public async Task<ActionResult<Payment>> CreatePayment(int loanId, [FromBody] PaymentsDto paymentDto)
         {
-            if (!ModelState.IsValid)
+            var loggedInUser = await GetLoggedInUser();
+            if (loggedInUser == null)
             {
-                return BadRequest(ModelState);
+                return Unauthorized("User is not logged in.");
             }
 
-            // Commenting out UserId extraction from JWT token for testing
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(userId))
-            {
-                return Unauthorized("UserId is missing from the token.");
-            }
-
-            if (!Enum.TryParse(dto.CurrencyType, true, out CurrencyType currencyType))
-            {
-                return BadRequest("Invalid CurrencyType.");
-            }
-
-            // Temporarily skip user-specific loan retrieval for testing
-            var loan = await _context.Loans
-                .FirstOrDefaultAsync(); // Modify this logic if you have a more specific way to find the loan
-
+            var loan = await _context.Loans.FindAsync(loanId);
             if (loan == null)
             {
-                return NotFound("No loan found.");
+                return NotFound("Loan not found.");
             }
 
             var payment = new Payment
             {
-                Amount = dto.Amount,
-                Date = dto.Date,
-                CurrencyType = currencyType,
-                LoanId = loan.Id
+                Amount = paymentDto.Amount,
+                Date = DateOnly.FromDateTime(DateTime.UtcNow),
+                LoanId = loan.Id,
+                CurrencyType = (CurrencyType)Enum.Parse(typeof(CurrencyType), paymentDto.CurrencyType, true),
+                PaymentMethod = (PaymentMethod)Enum.Parse(typeof(CurrencyType), paymentDto.PaymentMethod, true)
             };
 
             _context.Payments.Add(payment);
-            await _context.SaveChangesAsync();
+            loan.TotalPaid += payment.Amount;
 
-            var paymentDto = new PaymentsDto
+            if (loan.TotalPaid >= loan.Amount)
             {
-                Amount = payment.Amount,
-                Date = payment.Date,
-                CurrencyType = payment.CurrencyType.ToString() // Convert enum to string
-            };
+                loan.LoanStatus = LoanStatus.PaidOff;
+            }
 
-            return CreatedAtAction(nameof(GetPayment), new { id = payment.Id }, paymentDto);
+            await _context.SaveChangesAsync();
+            return CreatedAtAction(nameof(GetPayment), new { id = payment.Id }, payment);
         }
 
         // PUT: api/Payments/5
@@ -143,20 +136,20 @@ namespace BankManagementSystem.Controllers
                 return BadRequest(ModelState);
             }
 
-            // Commenting out UserId extraction from JWT token for testing
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(userId))
+            var loggedInUser = await GetLoggedInUser();
+            if (loggedInUser == null)
             {
-                return Unauthorized("UserId is missing from the token.");
+                return Unauthorized("User is not logged in.");
             }
 
             var payment = await _context.Payments
                 .Include(p => p.Loan)
-                .FirstOrDefaultAsync(p => p.Id == id);
+                .Where(p => p.Id == id && p.Loan.UserId == loggedInUser.Id)
+                .FirstOrDefaultAsync();
 
             if (payment == null)
             {
-                return NotFound();
+                return NotFound("Payment not found or access denied.");
             }
 
             if (!Enum.TryParse(dto.CurrencyType, true, out CurrencyType currencyType))
@@ -164,6 +157,7 @@ namespace BankManagementSystem.Controllers
                 return BadRequest("Invalid CurrencyType.");
             }
 
+            payment.PaymentMethod = Enum.TryParse(dto.PaymentMethod, out PaymentMethod paymentMethod) ? paymentMethod : payment.PaymentMethod;
             payment.Amount = dto.Amount;
             payment.Date = dto.Date;
             payment.CurrencyType = currencyType;
@@ -191,20 +185,20 @@ namespace BankManagementSystem.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeletePayment(int id)
         {
-            // Commenting out UserId extraction from JWT token for testing
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(userId))
+            var loggedInUser = await GetLoggedInUser();
+            if (loggedInUser == null)
             {
-                return Unauthorized("UserId is missing from the token.");
+                return Unauthorized("User is not logged in.");
             }
 
             var payment = await _context.Payments
                 .Include(p => p.Loan)
-                .FirstOrDefaultAsync(p => p.Id == id);
+                .Where(p => p.Id == id && p.Loan.UserId == loggedInUser.Id)
+                .FirstOrDefaultAsync();
 
             if (payment == null)
             {
-                return NotFound();
+                return NotFound("Payment not found or access denied.");
             }
 
             _context.Payments.Remove(payment);

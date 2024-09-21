@@ -35,35 +35,27 @@ namespace BankManagementSystem.Models
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<Account>(entity =>
-            {
-                entity.Property(e => e.Balance)
-                      .HasColumnType("decimal(18,2)");
-                entity.Property(e => e.OverdraftLimit)
-                      .HasColumnType("decimal(18,2)");
-            });
-
             modelBuilder.Entity<Loan>(entity =>
             {
                 entity.Property(e => e.Amount)
-                      .HasColumnType("decimal(18,2)");
+                      .HasPrecision(18, 2);
                 entity.Property(e => e.InterestRate)
-                      .HasColumnType("decimal(18,2)");
-            });
-
-            modelBuilder.Entity<Payment>(entity =>
-            {
-                entity.Property(e => e.Amount)
-                      .HasColumnType("decimal(18,2)");
-                entity.Property(e => e.Fee)
-                      .HasColumnType("decimal(18,2)");
+                      .HasPrecision(18, 2);
             });
 
             modelBuilder.Entity<Transaction>(entity =>
             {
                 entity.Property(e => e.Amount)
-                      .HasColumnType("decimal(18,2)");
+                      .HasPrecision(18, 2);
             });
+
+            modelBuilder.Entity<Account>()
+                .Property(a => a.Balance)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<Payment>()
+                .Property(p => p.Amount)
+                .HasPrecision(18, 2);
 
             base.OnModelCreating(modelBuilder);
         }

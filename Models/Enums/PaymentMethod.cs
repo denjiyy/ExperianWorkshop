@@ -5,6 +5,7 @@
         CreditCard,
         DebitCard,
         BankTransfer,
-        Cash
+        Cash,
+        Other
     }
 }

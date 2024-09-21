@@ -1,51 +1,60 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Http;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Linq;
 using BankManagementSystem.Models;
 using BankManagementSystem.Models.Enums;
 using BankManagementSystem.DataProcessor;
-using Microsoft.AspNetCore.Authorization;
-using System.Security.Claims;
 
 namespace BankManagementSystem.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize] // Commenting out authorization for testing
     public class TransactionsController : ControllerBase
     {
         private readonly BankSystemContext _context;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public TransactionsController(BankSystemContext context)
+        public TransactionsController(BankSystemContext context, IHttpContextAccessor httpContextAccessor)
         {
             _context = context;
+            _httpContextAccessor = httpContextAccessor;
+        }
+
+        private async Task<User> GetLoggedInUser()
+        {
+            var userId = _httpContextAccessor.HttpContext?.Session.GetString("UserId");
+            if (userId != null)
+            {
+                return await _context.Users.FindAsync(int.Parse(userId));
+            }
+            return null!;
         }
 
         // GET: api/Transactions
         [HttpGet]
         public async Task<ActionResult<IEnumerable<TransactionsDto>>> GetTransactions()
         {
-            // Commenting out UserId extraction from JWT token for testing
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(userId))
+            var loggedInUser = await GetLoggedInUser();
+            if (loggedInUser == null)
             {
-                return Unauthorized("UserId is missing from the token.");
+                return Unauthorized("User is not logged in.");
             }
 
-            // Temporarily fetch all transactions for testing without filtering by user
             var transactions = await _context.Transactions
                 .Include(t => t.Account)
+                .Where(t => t.Account.UserId == loggedInUser.Id)
                 .ToListAsync();
 
             var transactionDtos = transactions.Select(t => new TransactionsDto
             {
-                TransactionType = t.TransactionType.ToString(), // Convert enum to string
+                TransactionType = t.TransactionType.ToString(),
                 Amount = t.Amount,
                 TransactionDescription = t.TransactionDescription,
-                TransactionStatus = t.TransactionStatus.ToString(), // Convert enum to string
-                CurrencyType = t.CurrencyType.ToString(), // Convert enum to string
+                TransactionStatus = t.TransactionStatus.ToString(),
+                CurrencyType = t.CurrencyType.ToString(),
                 Timestamp = t.Timestamp
             }).ToList();
 
@@ -56,31 +65,29 @@ namespace BankManagementSystem.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<TransactionsDto>> GetTransaction(int id)
         {
-            // Commenting out UserId extraction from JWT token for testing
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(userId))
+            var loggedInUser = await GetLoggedInUser();
+            if (loggedInUser == null)
             {
-                return Unauthorized("UserId is missing from the token.");
+                return Unauthorized("User is not logged in.");
             }
 
-            // Temporarily fetch transaction without filtering by user for testing
             var transaction = await _context.Transactions
                 .Include(t => t.Account)
-                .Where(t => t.Id == id)
+                .Where(t => t.Id == id && t.Account.UserId == loggedInUser.Id)
                 .FirstOrDefaultAsync();
 
             if (transaction == null)
             {
-                return NotFound("Transaction not found.");
+                return NotFound("Transaction not found or access denied.");
             }
 
             var transactionDto = new TransactionsDto
             {
-                TransactionType = transaction.TransactionType.ToString(), // Convert enum to string
+                TransactionType = transaction.TransactionType.ToString(),
                 Amount = transaction.Amount,
                 TransactionDescription = transaction.TransactionDescription,
-                TransactionStatus = transaction.TransactionStatus.ToString(), // Convert enum to string
-                CurrencyType = transaction.CurrencyType.ToString(), // Convert enum to string
+                TransactionStatus = transaction.TransactionStatus.ToString(),
+                CurrencyType = transaction.CurrencyType.ToString(),
                 Timestamp = transaction.Timestamp
             };
 
@@ -96,11 +103,10 @@ namespace BankManagementSystem.Controllers
                 return BadRequest(ModelState);
             }
 
-            // Commenting out UserId extraction from JWT token for testing
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(userId))
+            var loggedInUser = await GetLoggedInUser();
+            if (loggedInUser == null)
             {
-                return Unauthorized("UserId is missing from the token.");
+                return Unauthorized("User is not logged in.");
             }
 
             if (!Enum.TryParse(dto.TransactionType, true, out TransactionType transactionType))
@@ -118,13 +124,12 @@ namespace BankManagementSystem.Controllers
                 return BadRequest("Invalid CurrencyType.");
             }
 
-            // Temporarily skip user-specific account retrieval for testing
             var account = await _context.Accounts
-                .FirstOrDefaultAsync(); // Modify this logic if you have a more specific way to find the account
+                .FirstOrDefaultAsync(a => a.UserId == loggedInUser.Id);
 
             if (account == null)
             {
-                return NotFound("No account found.");
+                return NotFound("No account found for the logged-in user.");
             }
 
             var transaction = new Transaction
@@ -135,7 +140,8 @@ namespace BankManagementSystem.Controllers
                 TransactionStatus = transactionStatus,
                 CurrencyType = currencyType,
                 Timestamp = dto.Timestamp,
-                AccountId = account.Id
+                AccountId = account.Id,
+                Recipient = dto.Recipient
             };
 
             _context.Transactions.Add(transaction);
@@ -143,11 +149,11 @@ namespace BankManagementSystem.Controllers
 
             var transactionDto = new TransactionsDto
             {
-                TransactionType = transaction.TransactionType.ToString(), // Convert enum to string
+                TransactionType = transaction.TransactionType.ToString(),
                 Amount = transaction.Amount,
                 TransactionDescription = transaction.TransactionDescription,
-                TransactionStatus = transaction.TransactionStatus.ToString(), // Convert enum to string
-                CurrencyType = transaction.CurrencyType.ToString(), // Convert enum to string
+                TransactionStatus = transaction.TransactionStatus.ToString(),
+                CurrencyType = transaction.CurrencyType.ToString(),
                 Timestamp = transaction.Timestamp
             };
 
@@ -163,20 +169,19 @@ namespace BankManagementSystem.Controllers
                 return BadRequest(ModelState);
             }
 
-            // Commenting out UserId extraction from JWT token for testing
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(userId))
+            var loggedInUser = await GetLoggedInUser();
+            if (loggedInUser == null)
             {
-                return Unauthorized("UserId is missing from the token.");
+                return Unauthorized("User is not logged in.");
             }
 
             var transaction = await _context.Transactions
                 .Include(t => t.Account)
-                .FirstOrDefaultAsync(t => t.Id == id);
+                .FirstOrDefaultAsync(t => t.Id == id && t.Account.UserId == loggedInUser.Id);
 
             if (transaction == null)
             {
-                return NotFound();
+                return NotFound("Transaction not found or access denied.");
             }
 
             if (!Enum.TryParse(dto.TransactionType, true, out TransactionType transactionType))
@@ -224,20 +229,19 @@ namespace BankManagementSystem.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteTransaction(int id)
         {
-            // Commenting out UserId extraction from JWT token for testing
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(userId))
+            var loggedInUser = await GetLoggedInUser();
+            if (loggedInUser == null)
             {
-                return Unauthorized("UserId is missing from the token.");
+                return Unauthorized("User is not logged in.");
             }
 
             var transaction = await _context.Transactions
                 .Include(t => t.Account)
-                .FirstOrDefaultAsync(t => t.Id == id);
+                .FirstOrDefaultAsync(t => t.Id == id && t.Account.UserId == loggedInUser.Id);
 
             if (transaction == null)
             {
-                return NotFound();
+                return NotFound("Transaction not found or access denied.");
             }
 
             _context.Transactions.Remove(transaction);

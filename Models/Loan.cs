@@ -38,6 +38,9 @@ namespace BankManagementSystem.Models
         [Required]
         public DateOnly EndDate { get; set; }
 
+        [NotMapped]
+        public decimal TotalPaid { get; set; }
+ 
         [Required]
         public LoanStatus LoanStatus { get; set; }
 

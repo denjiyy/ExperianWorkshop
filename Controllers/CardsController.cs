@@ -6,37 +6,61 @@ using Microsoft.EntityFrameworkCore;
 using BankManagementSystem.Models;
 using BankManagementSystem.Models.Enums;
 using BCrypt.Net;
-using BankManagementSystem.DataProcessor;
 using Microsoft.AspNetCore.Authorization;
-using System.Security.Claims;
+using Microsoft.AspNetCore.Http;
+using BankManagementSystem.DataProcessor;
 
 namespace BankManagementSystem.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize]  // Commenting out authorization for testing
     public class CardsController : ControllerBase
     {
         private readonly BankSystemContext _context;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public CardsController(BankSystemContext context)
+        public CardsController(BankSystemContext context, IHttpContextAccessor httpContextAccessor)
         {
             _context = context;
+            _httpContextAccessor = httpContextAccessor;
+        }
+
+        private async Task<User> GetLoggedInUser()
+        {
+            var userId = _httpContextAccessor.HttpContext!.Session.GetString("UserId");
+            if (userId != null)
+            {
+                return await _context.Users.FindAsync(int.Parse(userId));
+            }
+            return null;
         }
 
         // GET: api/Cards
         [HttpGet]
         public async Task<IActionResult> GetCards()
         {
-            var cards = await _context.Cards
+            var loggedInUser = await GetLoggedInUser();
+            if (loggedInUser == null)
+            {
+                return Unauthorized("User is not logged in.");
+            }
+
+            IQueryable<Card> query = _context.Cards.Include(c => c.Account);
+
+            if (!loggedInUser.IsAdministrator)
+            {
+                query = query.Where(c => c.Account.UserId == loggedInUser.Id);
+            }
+
+            var cards = await query
                 .Select(c => new CardsDto
                 {
-                    CardNumber = c.CardNumber,  // Only show masked or hashed numbers for security reasons
+                    CardNumber = c.CardNumber,
                     CardType = c.CardType.ToString(),
                     ExpiryDate = c.ExpiryDate,
                     Status = c.Status.ToString(),
                     IssueDate = c.IssueDate,
-                    CVV = "Hidden" // Never return sensitive information like CVV
+                    CVV = "Hidden"
                 })
                 .ToListAsync();
 
@@ -47,17 +71,15 @@ namespace BankManagementSystem.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetCard(int id)
         {
+            var loggedInUser = await GetLoggedInUser();
+            if (loggedInUser == null)
+            {
+                return Unauthorized("User is not logged in.");
+            }
+
             var card = await _context.Cards
+                .Include(c => c.Account)
                 .Where(c => c.Id == id)
-                .Select(c => new CardsDto
-                {
-                    CardNumber = c.CardNumber,
-                    CardType = c.CardType.ToString(),
-                    ExpiryDate = c.ExpiryDate,
-                    Status = c.Status.ToString(),
-                    IssueDate = c.IssueDate,
-                    CVV = "Hidden" // Again, never expose CVV
-                })
                 .FirstOrDefaultAsync();
 
             if (card == null)
@@ -65,7 +87,22 @@ namespace BankManagementSystem.Controllers
                 return NotFound();
             }
 
-            return Ok(card);
+            if (!loggedInUser.IsAdministrator && card.Account.UserId != loggedInUser.Id)
+            {
+                return Forbid();
+            }
+
+            var cardDto = new CardsDto
+            {
+                CardNumber = card.CardNumber,
+                CardType = card.CardType.ToString(),
+                ExpiryDate = card.ExpiryDate,
+                Status = card.Status.ToString(),
+                IssueDate = card.IssueDate,
+                CVV = "Hidden" //??? is this correct?
+            };
+
+            return Ok(cardDto);
         }
 
         // POST: api/Cards
@@ -77,11 +114,17 @@ namespace BankManagementSystem.Controllers
                 return BadRequest(ModelState);
             }
 
-            // Commenting out the UserId extraction from JWT token for testing
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(userId))
+            var loggedInUser = await GetLoggedInUser();
+            if (loggedInUser == null)
             {
-                return Unauthorized("UserId is missing from the token.");
+                return Unauthorized("User is not logged in.");
+            }
+
+            // Get the first account associated with the logged-in user (you can modify this logic as needed)
+            var account = await _context.Accounts.FirstOrDefaultAsync(a => a.UserId == loggedInUser.Id);
+            if (account == null)
+            {
+                return BadRequest("No account associated with this user.");
             }
 
             if (_context.Cards.Any(c => c.CardNumber == dto.CardNumber))
@@ -97,7 +140,7 @@ namespace BankManagementSystem.Controllers
                 CVV = BCrypt.Net.BCrypt.EnhancedHashPassword(dto.CVV),
                 IssueDate = dto.IssueDate,
                 Status = (Status)Enum.Parse(typeof(Status), dto.Status, true),
-                //UserId = int.Parse(userId)  // Temporarily disabling UserId association for testing
+                AccountId = account.Id // Automatically assign the card to the user's account
             };
 
             _context.Cards.Add(card);
@@ -115,22 +158,22 @@ namespace BankManagementSystem.Controllers
                 return BadRequest(ModelState);
             }
 
-            if (id <= 0)
+            var loggedInUser = await GetLoggedInUser();
+            if (loggedInUser == null)
             {
-                return BadRequest("Invalid card ID.");
+                return Unauthorized("User is not logged in.");
             }
 
-            var card = await _context.Cards.FindAsync(id);
+            var card = await _context.Cards.Include(c => c.Account).Where(c => c.Id == id).FirstOrDefaultAsync();
             if (card == null)
             {
                 return NotFound();
             }
 
-            // Commenting out the UserId extraction from JWT token for testing
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(userId))
+            // Non-admin users can only edit cards from their own accounts
+            if (!loggedInUser.IsAdministrator && card.Account.UserId != loggedInUser.Id)
             {
-                return Unauthorized("UserId is missing from the token.");
+                return Forbid();
             }
 
             card.CardNumber = dto.CardNumber;
@@ -139,7 +182,6 @@ namespace BankManagementSystem.Controllers
             card.Status = (Status)Enum.Parse(typeof(Status), dto.Status, true);
             card.CVV = BCrypt.Net.BCrypt.EnhancedHashPassword(dto.CVV);
             card.IssueDate = dto.IssueDate;
-            // card.UserId = int.Parse(userId);  // Temporarily disabling UserId update for testing
 
             try
             {
@@ -164,15 +206,22 @@ namespace BankManagementSystem.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteCard(int id)
         {
-            if (id <= 0)
+            var loggedInUser = await GetLoggedInUser();
+            if (loggedInUser == null)
             {
-                return BadRequest("Invalid card ID.");
+                return Unauthorized("User is not logged in.");
             }
 
-            var card = await _context.Cards.FindAsync(id);
+            var card = await _context.Cards.Include(c => c.Account).Where(c => c.Id == id).FirstOrDefaultAsync();
             if (card == null)
             {
                 return NotFound();
+            }
+
+            // Non-admin users can only delete cards from their own accounts
+            if (!loggedInUser.IsAdministrator && card.Account.UserId != loggedInUser.Id)
+            {
+                return Forbid();
             }
 
             _context.Cards.Remove(card);

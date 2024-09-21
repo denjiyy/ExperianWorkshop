@@ -1,45 +1,63 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using BankManagementSystem.Models;
 using BankManagementSystem.Models.Enums;
 using BankManagementSystem.DataProcessor;
-using Microsoft.AspNetCore.Authorization;
-using System.Security.Claims;
 
 namespace BankManagementSystem.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize] // Commenting out authorization for testing
     public class LoansController : ControllerBase
     {
         private readonly BankSystemContext _context;
+        private readonly IHttpContextAccessor _contextAccessor;
 
-        public LoansController(BankSystemContext context)
+        public LoansController(BankSystemContext context, HttpContextAccessor contextAccessor)
         {
             _context = context;
+            _contextAccessor = contextAccessor;
+        }
+
+        private async Task<User> GetLoggedInUser()
+        {
+            var userId = _contextAccessor.HttpContext?.Session.GetString("UserId");
+            if (userId != null)
+            {
+                return await _context.Users.FindAsync(int.Parse(userId));
+            }
+            return null!;
+        }
+
+        private DateOnly GetFirstOfNextMonth(DateOnly date)
+        {
+            return new DateOnly(date.Year, date.Month, 1).AddMonths(1);
         }
 
         // GET: api/Loans
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Loan>>> GetLoans()
         {
-            // Commenting out UserId extraction from JWT token for testing
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(userId))
+            var loggedInUser = await GetLoggedInUser();
+            if (loggedInUser == null)
             {
-                return Unauthorized("UserId is missing from the token.");
+                return Unauthorized("User is not logged in.");
             }
 
-            // Temporarily fetch all loans for testing without filtering by user
-            var loans = await _context.Loans
-                .Include(l => l.User)
-                .ToListAsync();
+            IQueryable<Loan> query = _context.Loans.Include(l => l.User);
 
+            if (!loggedInUser.IsAdministrator)
+            {
+                query = query.Where(l => l.UserId == loggedInUser.Id);
+            }
+
+            var loans = await query.ToListAsync();
             return Ok(loans);
         }
 
@@ -47,22 +65,21 @@ namespace BankManagementSystem.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<Loan>> GetLoan(int id)
         {
-            // Commenting out UserId extraction from JWT token for testing
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(userId))
+            var loggedInUser = await GetLoggedInUser();
+            if (loggedInUser == null)
             {
-                return Unauthorized("UserId is missing from the token.");
+                return Unauthorized("User is not logged in.");
             }
 
-            // Temporarily fetch loan without filtering by user for testing
-            var loan = await _context.Loans
-                .Where(l => l.Id == id)
-                .Include(l => l.User)
-                .FirstOrDefaultAsync();
-
+            var loan = await _context.Loans.Include(l => l.User).FirstOrDefaultAsync(l => l.Id == id);
             if (loan == null)
             {
                 return NotFound();
+            }
+
+            if (!loggedInUser.IsAdministrator && loan.UserId != loggedInUser.Id)
+            {
+                return Forbid();
             }
 
             return Ok(loan);
@@ -77,25 +94,44 @@ namespace BankManagementSystem.Controllers
                 return BadRequest(ModelState);
             }
 
-            // Commenting out UserId extraction from JWT token for testing
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(userId))
+            var loggedInUser = await GetLoggedInUser();
+            if (loggedInUser == null)
             {
-                return Unauthorized("UserId is missing from the token.");
+                return Unauthorized("User is not logged in.");
+            }
+
+            var activeLoansCount = await _context.Loans.CountAsync(l => l.UserId == loggedInUser.Id && l.LoanStatus == LoanStatus.Active);
+            if (activeLoansCount >= 10)
+            {
+                return BadRequest("You cannot have more than 10 active loans.");
+            }
+
+            var riskController = new RiskController(_context);
+            decimal riskScore = riskController.CalculateRiskScore(loanDto, loggedInUser.Id);
+
+            if (riskScore < 45)
+            {
+                return BadRequest("Loan denied due to high risk assessment.");
             }
 
             var loan = new Loan
             {
                 Amount = loanDto.Amount,
                 InterestRate = loanDto.InterestRate,
-                CurrencyType = (CurrencyType)Enum.Parse(typeof(CurrencyType), loanDto.CurrencyType, true),
+                CurrencyType = Enum.TryParse(loanDto.CurrencyType, true, out CurrencyType currencyType)
+                    ? currencyType
+                    : throw new ArgumentException("Invalid currency type."),
                 DateApproved = loanDto.DateApproved,
                 StartDate = loanDto.StartDate,
-                NextPaymentDate = loanDto.NextPaymentDate,
+                NextPaymentDate = GetFirstOfNextMonth(loanDto.StartDate),
                 EndDate = loanDto.EndDate,
-                LoanType = (LoanType)Enum.Parse(typeof(LoanType), loanDto.LoanType, true),
-                LoanStatus = (LoanStatus)Enum.Parse(typeof(LoanStatus), loanDto.LoanStatus, true),
-                // Temporarily skipping UserId association for testing
+                LoanType = Enum.TryParse(loanDto.LoanType, true, out LoanType loanType)
+                    ? loanType
+                    : throw new ArgumentException("Invalid loan type."),
+                LoanStatus = Enum.TryParse(loanDto.LoanStatus, true, out LoanStatus loanStatus)
+                    ? loanStatus
+                    : throw new ArgumentException("Invalid loan status."),
+                UserId = loggedInUser.Id
             };
 
             _context.Loans.Add(loan);
@@ -108,31 +144,43 @@ namespace BankManagementSystem.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateLoan(int id, [FromBody] LoansDto loanDto)
         {
-            // Commenting out UserId extraction from JWT token for testing
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(userId))
+            if (!ModelState.IsValid)
             {
-                return Unauthorized("UserId is missing from the token.");
+                return BadRequest(ModelState);
             }
 
-            var loan = await _context.Loans
-                .Where(l => l.Id == id)
-                .FirstOrDefaultAsync();
+            var loggedInUser = await GetLoggedInUser();
+            if (loggedInUser == null)
+            {
+                return Unauthorized("User is not logged in.");
+            }
 
+            var loan = await _context.Loans.FindAsync(id);
             if (loan == null)
             {
                 return NotFound();
             }
 
+            if (!loggedInUser.IsAdministrator && loan.UserId != loggedInUser.Id)
+            {
+                return Forbid();
+            }
+
             loan.Amount = loanDto.Amount;
             loan.InterestRate = loanDto.InterestRate;
-            loan.CurrencyType = (CurrencyType)Enum.Parse(typeof(CurrencyType), loanDto.CurrencyType, true);
+            loan.CurrencyType = Enum.TryParse(loanDto.CurrencyType, true, out CurrencyType currencyType)
+                ? currencyType
+                : throw new ArgumentException("Invalid currency type.");
             loan.DateApproved = loanDto.DateApproved;
             loan.StartDate = loanDto.StartDate;
-            loan.NextPaymentDate = loanDto.NextPaymentDate;
+            loan.NextPaymentDate = GetFirstOfNextMonth(loanDto.StartDate);
             loan.EndDate = loanDto.EndDate;
-            loan.LoanType = (LoanType)Enum.Parse(typeof(LoanType), loanDto.LoanType, true);
-            loan.LoanStatus = (LoanStatus)Enum.Parse(typeof(LoanStatus), loanDto.LoanStatus, true);
+            loan.LoanType = Enum.TryParse(loanDto.LoanType, true, out LoanType loanType)
+                ? loanType
+                : throw new ArgumentException("Invalid loan type.");
+            loan.LoanStatus = Enum.TryParse(loanDto.LoanStatus, true, out LoanStatus loanStatus)
+                ? loanStatus
+                : throw new ArgumentException("Invalid loan status.");
 
             try
             {
@@ -144,10 +192,7 @@ namespace BankManagementSystem.Controllers
                 {
                     return NotFound();
                 }
-                else
-                {
-                    throw;
-                }
+                throw;
             }
 
             return NoContent();
@@ -157,24 +202,37 @@ namespace BankManagementSystem.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteLoan(int id)
         {
-            // Commenting out UserId extraction from JWT token for testing
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(userId))
+            var loggedInUser = await GetLoggedInUser();
+            if (loggedInUser == null)
             {
-                return Unauthorized("UserId is missing from the token.");
+                return Unauthorized("User is not logged in.");
             }
 
-            var loan = await _context.Loans
-                .Where(l => l.Id == id)
-                .FirstOrDefaultAsync();
-
+            var loan = await _context.Loans.FindAsync(id);
             if (loan == null)
             {
                 return NotFound();
             }
 
-            _context.Loans.Remove(loan);
-            await _context.SaveChangesAsync();
+            if (!loggedInUser.IsAdministrator && loan.UserId != loggedInUser.Id)
+            {
+                return Forbid();
+            }
+
+            loan.LoanStatus = LoanStatus.PaidOff;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!LoanExists(id))
+                {
+                    return NotFound();
+                }
+                throw;
+            }
 
             return NoContent();
         }

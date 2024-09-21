@@ -12,8 +12,8 @@ namespace BankManagementSystem.Models
         public User()
         {
             Accounts = new HashSet<Account>();
-            //Cards = new HashSet<Card>();
             Loans = new HashSet<Loan>();
+            CreditScore = 100;
         }
 
         [Key]
@@ -44,8 +44,20 @@ namespace BankManagementSystem.Models
         [MaxLength(30)]
         public string Address { get; set; }
 
+        private int _creditScore;
+
         [Required]
-        public int CreditScore { get; set; }
+        public int CreditScore
+        {
+            get
+            {
+                return _creditScore;
+            }
+            set
+            {
+                _creditScore = Math.Clamp(value, 0, 100);
+            }
+        }
 
         [Required]
         public Status Status { get; set; }
@@ -57,6 +69,9 @@ namespace BankManagementSystem.Models
 
         public ICollection<Loan> Loans { get; set; }
 
-        //public ICollection<Card> Cards { get; set; }
+        public void UpdateCreditScore(int delta)
+        {
+            CreditScore = Math.Clamp(CreditScore + delta, 0, 100);
+        }
     }
 }

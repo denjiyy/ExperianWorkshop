@@ -8,8 +8,7 @@ namespace BankManagementSystem.Models
     {
         [Key]
         public int Id { get; set; }
-
-        [Required]
+        
         public TransactionType TransactionType { get; set; }
 
         [Required]
