@@ -7,15 +7,21 @@ import * as S from "./collections/LoginForm";
 import { MaterialUIControllerProvider } from "./context"; // make sure this path is correct src/context/index.js
 // import Transactions from './collections/TransactionsHistory/TransactionHistory';
 import LoanApply from "./collections/LoanApply/LoanApply";
-import LoanListAdmin from "./collections/LoansListAdmin/LoansListAdmin"; 
-
+import LoanListAdmin from "./collections/LoansListAdmin/LoansListAdmin";
+import DataTable from "./collections/DataTable/index.js";
+import tabledata from "./data/data";
+import LoanApproval from "./collections/LoanApproval/LoanApproval";
+import HomePage from "./collections/HomePage/HomePage";
 
 function App() {
   return (
     <div className="App">
       <MaterialUIControllerProvider>
+        <HomePage />
+        {/* <DataTable table={tabledata} entriesPerPage={false}></DataTable> */}
+        <LoanApproval />
         <LoanApply />
-        <LoanListAdmin/>
+        <LoanListAdmin />
         <GlobalStyles />
         {/* <Router>
         <Routes>

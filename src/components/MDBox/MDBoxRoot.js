@@ -18,11 +18,11 @@ import Box from "@mui/material/Box";
 import { styled } from "@mui/material/styles";
 
 export default styled(Box)(({ theme, ownerState }) => {
-  const { palette, functions, borders, boxShadows } = theme;
+  const { palette, functions = {}, borders, boxShadows } = theme;
   const { variant, bgColor, color, opacity, borderRadius, shadow, coloredShadow } = ownerState;
 
   const { gradients, grey, white } = palette;
-  const { linearGradient } = functions;
+  const { linearGradient = () => '' } = functions;  // Default fallback for linearGradient
   const { borderRadius: radius } = borders;
   const { colored } = boxShadows;
 

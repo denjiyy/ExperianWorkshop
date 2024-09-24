@@ -13,6 +13,7 @@ import { DemoContainer } from "@mui/x-date-pickers/internals/demo";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+import "./style.css";
 
 function LoanListAdmin() {
   const [loans, setLoans] = useState([]);
@@ -84,62 +85,66 @@ function LoanListAdmin() {
   return (
     <div className="loans">
       <h1>Loans to approve</h1>
-      <div className="date-picker">
-        <LocalizationProvider dateAdapter={AdapterDayjs}>
-          <DemoContainer components={["DatePicker"]}>
-            <DatePicker
-              label="Start Date"
-              value={startDate}
-              onChange={handleStartDateChange}
-            />
-          </DemoContainer>
-        </LocalizationProvider>
+      <div className="table">
+        <div className="date-picker">
+          <LocalizationProvider dateAdapter={AdapterDayjs}>
+            <DemoContainer components={["DatePicker"]}>
+              <DatePicker
+                label="Start Date"
+                value={startDate}
+                onChange={handleStartDateChange}
+              />
+            </DemoContainer>
+          </LocalizationProvider>
 
-        <LocalizationProvider dateAdapter={AdapterDayjs}>
-          <DemoContainer components={["DatePicker"]}>
-            <DatePicker
-              label="End Date"
-              value={endDate}
-              minDate={startDate} // Ensure end date is after start date
-              onChange={handleEndDateChange}
-            />
-          </DemoContainer>
-        </LocalizationProvider>
-      </div>
+          <LocalizationProvider dateAdapter={AdapterDayjs}>
+            <DemoContainer components={["DatePicker"]}>
+              <DatePicker
+                label="End Date"
+                value={endDate}
+                minDate={startDate} // Ensure end date is after start date
+                onChange={handleEndDateChange}
+              />
+            </DemoContainer>
+          </LocalizationProvider>
+        </div>
 
-      {error && <p style={{ color: "red" }}>{error}</p>}
-
-      <TableContainer component={Paper}>
-        <Table sx={{ minWidth: 650 }} aria-label="simple table">
-          <TableHead>
-            <TableRow>
-              <TableCell>Loans</TableCell>
-              <TableCell align="right">Date</TableCell>
-              <TableCell align="right">Owner</TableCell>
-              <TableCell align="right">Type</TableCell>
-              <TableCell align="right">Amount</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {filteredLoans.map((loan, index) => (
-              <TableRow
-                key={index}
-                sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
-              >
-                <TableCell component="th" scope="row">
-                  {loan.id}
-                </TableCell>
-                <TableCell align="right">
-                  {dayjs(loan.date * 1000).format("DD/MM/YYYY")}
-                </TableCell>
-                <TableCell align="right">{loan.owner}</TableCell>
-                <TableCell align="right">{loan.type}</TableCell>
-                <TableCell align="right">{loan.amount}</TableCell>
+        {error && <p style={{ color: "red" }}>{error}</p>}
+        <TableContainer
+          className="table"
+          sx={{
+            maxWidth: "1000px",
+          }}
+          // pageSizeOptions={[5, 10]}
+          component={Paper}
+        >
+          <Table sx={{ minWidth: 650 }} aria-label="simple table">
+            <TableHead>
+              <TableRow>
+                <TableCell align="right">Date</TableCell>
+                <TableCell align="right">Owner</TableCell>
+                <TableCell align="right">Type</TableCell>
+                <TableCell align="right">Amount</TableCell>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+            </TableHead>
+            <TableBody>
+              {filteredLoans.map((loan, index) => (
+                <TableRow
+                  key={index}
+                  sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
+                >
+                  <TableCell align="right">
+                    {dayjs(loan.date * 1000).format("DD/MM/YYYY")}
+                  </TableCell>
+                  <TableCell align="right">{loan.owner}</TableCell>
+                  <TableCell align="right">{loan.type}</TableCell>
+                  <TableCell align="right">{loan.amount}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </div>
     </div>
   );
 }
