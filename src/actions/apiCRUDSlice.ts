@@ -1,10 +1,11 @@
  import axios,{AxiosResponse} from "axios";
-import { SignUpProps } from "../types/form";
+import { LoginProps, SignUpProps } from "../types/form";
 import { DUser } from "../reducers";
 import { create } from "domain";
 import { json } from "stream/consumers";
- const baseURL = "https://localhost:7223/api/"
- interface UrlProps{
+import { loginUser } from "./Duser";
+export const baseURL = "https://localhost:7223/api"
+ export interface UrlProps{
     url?:string,
     idUser?:string,
 
@@ -13,7 +14,7 @@ axios.defaults.headers.post['Content-Type'] = 'application/json';
 
  export default{
 
-    dUser({ url = baseURL + 'auth/', idUser = '' }: UrlProps) {
+    dUser({ url = baseURL + '/Users', idUser = '' }: UrlProps) {
         return {
           fetchAll: async (): Promise<AxiosResponse<any>> => {
             return await axios.get(url);
@@ -30,6 +31,16 @@ axios.defaults.headers.post['Content-Type'] = 'application/json';
                     },
             }))
           },
+          loginUser: async (newRecord:LoginProps): Promise<AxiosResponse<any>>=>{
+              const urlLogin = url+"/login"
+            return(axios.post(urlLogin,newRecord,{
+              headers: {
+                      'Accept': 'application/json',
+                      'Content-Type': 'application/json' // Indicates that the request body is JSON
+                    },
+            }))
+          },
+          
           //  create:  (newRecord: SignUpProps) => {
           //   return  fetch(url, {
           //     method: 'POST', // Setting method to POST

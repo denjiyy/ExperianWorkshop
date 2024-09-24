@@ -9,6 +9,6 @@ export interface SignUpProps {
     dateOfBirth:string;
 }
 export interface LoginProps{
-    email:string;
+    username:string;
     password:string;
 }

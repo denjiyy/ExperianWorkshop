@@ -1,6 +1,6 @@
 import { AppDispatch } from "./store";
 import api from "./apiCRUDSlice";
-import { SignUpProps } from "../types/form";
+import { LoginProps, SignUpProps } from "../types/form";
 // export const create = (data:any) =>{
 //     return({
 //         type:'create',
@@ -10,6 +10,12 @@ import { SignUpProps } from "../types/form";
 interface onCreateProps{
   data:SignUpProps;
   onSuccess?: () => void; 
+  url?:string;
+}
+interface onLoginProps{
+  data:LoginProps;
+  onSuccess?: () => void; 
+  url?:string;
 }
 interface onUpdateProps extends onCreateProps{
   id:string;
@@ -20,6 +26,7 @@ export const ACTION_TYPES = {
   DELETE: "DELETE",
   FETCH_ID:"FETCH_ID",
   FETCH_ALL: "FETCH_ALL",
+  LOGIN_USER:"LOGIN_USER"
 };
 
 // const FormateDate = (data:SignUpProps) =>({
@@ -69,9 +76,18 @@ export const create = (data:SignUpProps)=> (dispatch:AppDispatch)=>{
     })
   }).catch(err=>console.log((err)))
 }
+export const loginUser = (data:LoginProps)=> (dispatch:AppDispatch)=>{
+  api.dUser({}).loginUser(data).then(res=>{
+   console.log("API Response:",res.data);
+   dispatch({
+     type:ACTION_TYPES.CREATE,
+     payload:res.data
+   })
+ }).catch(err=>console.log((err)))
+}
 export const update = ({id,data,onSuccess}:onUpdateProps)=>  (dispatch: AppDispatch) =>{
   // data = FormateDate(data)
-  api.dUser({}).update(id,data).then(res=>{
+  api.dUser({url :"https://localhost:7223/api/Users"}).update(id,data).then(res=>{
     dispatch({
       type:ACTION_TYPES.UPDATE,
       payload:{id:id,...data}

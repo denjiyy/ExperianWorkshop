@@ -6,15 +6,15 @@ import { DUserState } from "../../types";
 import * as _actions from "../../actions/Duser"
 import { connect, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { useLoginMutation } from "../../actions/authApiSlice";
-import { setCredentials } from "../../actions/authSlice";
+// import { useLoginMutation } from "../../actions/authApiSlice";
+// import { setCredentials } from "../../actions/authSlice";
 import { LoginProps } from "../../types/form";
 
 
 //import AuthContext from "@/src/axios_auth/context/AuthProvider";
 
 //import axios from "../../axios_auth/api/axios";
-const LOGIN_URL = 'api/auth'
+// const LOGIN_URL = 'api/auth'
 
 
 export const LoginFormToConnect = (props:any) => {
@@ -26,7 +26,7 @@ const [pwd,setPwd] = useState('')
 const [errMsg,setErrMsg] = useState('')
 const navigate = useNavigate()
 
-const [login, {isLoading}] = useLoginMutation()
+// const [login, {isLoading}] = useLoginMutation()
 const dispatch = useDispatch()
 
 useEffect(()=>{
@@ -42,63 +42,24 @@ useEffect(()=>{
       password: "",
     },
   });
-  const submitHandler = handleSubmit(async({username,password})=>{
-    // console.log(username)
-    // console.log(password)
-    try{
-      //userData - accessToken
-        //  // const userData = await login({username,password}).unwrap()
-        //  //dispatch(setCredentials({...userData,user}))
-        //  if (Object.keys(errors).length === 0) {
-        //  const response = await props.createduser({username,password},()=>console.log("inserted")); 
-        //  const accessToken = response?.data.token
-        //  //setAuth({username,password,accessToken})
-        //  navigate("/")
-        const userData = await login({username,password}).unwrap()
-        dispatch(setCredentials({...userData,user}))
-        navigate("/welcome")
+  const submitHandler = handleSubmit(async(data:LoginProps)=>{
+
+
+    //  localStorage.setItem('token',"")
+    //  localStorage.getItem('token')
+
+
+    if (Object.keys(errors).length === 0) {
+     const response = await props.loginuser(data); 
+     localStorage.setItem('token',response)
+   
+     if(response){
+       navigate(`/${response.userId}`)
      }
-        catch(err:any){
-          if(!err?.response){
-            setErrMsg('No server response')
-          }
-          else if(err.response?.status===400){
-            setErrMsg("Missing Email or Password")
-          }
-          else if(err.response?.status===401){
-            setErrMsg('Unauthorized')
-          }
-          else{
-            setErrMsg('Login failed')
-            
-          }
-          // errRef.current.focus();
-          console.log(errMsg)
-        }
+    }
   })
   
-  // const submitHandler =async handleSubmit(({email,password}:)) => {
-  //   try{
-  //     const userData = await login({email,password}).unwrap()
-  //     dispatch(setCredentials({...userData,user}))
-  //     navigate("/")
-  //   }
-  //   catch(err:any){
-  //     if(!err?.response){
-  //       setErrMsg('No server response')
-  //     }
-  //     else if(err.response?.status===400){
-  //       setErrMsg("Missing Email or Password")
-  //     }
-  //     else if(err.response?.status===401){
-  //       setErrMsg('Unauthorized')
-  //     }
-  //     else{
-  //       setErrMsg('Login failed')
-  //     }
-  //     errRef.current.focus();
-  //   }
-  //   // your form submission logic
+  
   // };
       
   return (
@@ -122,7 +83,7 @@ useEffect(()=>{
     //     strokeOpacity={0.4}
     //   />
     // </S.FormContainer>
-isLoading ? <h1>Loading...</h1> :(
+// isLoading ? <h1>Loading...</h1> :(
     <S.PageContainer>
       <S.Container>
         <S.FormContainer >
@@ -170,7 +131,7 @@ isLoading ? <h1>Loading...</h1> :(
         <S.Image src=""/>
       </S.Container>
     </S.PageContainer>
-  ));
+  );
 };
 const mapStateToProps = (state:DUserState) =>{
   return({
@@ -179,6 +140,8 @@ const mapStateToProps = (state:DUserState) =>{
 }
 const mapActionsToProps={
   createduser : _actions.create,
+  loginuser: _actions.loginUser,
+  fetchUser : _actions.fetchById,
   // updateduSer:_actions.update,
 }
 export const LoginForm = connect(mapStateToProps,mapActionsToProps)(LoginFormToConnect)

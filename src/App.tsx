@@ -7,15 +7,15 @@ import { Provider } from 'react-redux';
 import { GlobalStyles,theme } from './styles';
 import * as S from "./pages"
 import * as V from "./users/UsersController"
-import { RequireAuth } from './collections/LoginForm/RequireAuth';
-import { Welcome } from './collections/LoginForm/RequireAuth/Welcome';
-import Layout from './actions/Layout';
+// import { RequireAuth } from './collections/LoginForm/RequireAuth';
+// import { Welcome } from './collections/LoginForm/RequireAuth/Welcome';
+// import Layout from './actions/Layout';
 function App() {
   return (
     
     <div className="App">
       <GlobalStyles/>
-      {/* <Router>
+      <Router>
         <Routes>
           <Route path='/' element={<S.HomePage/>}/>
           <Route path='/login' element={<S.LoginUpPage/>}/>
@@ -23,8 +23,8 @@ function App() {
           <Route path='/duser' element={<V.default/>}/>
       
           </Routes>
-          </Router> */}
-      <Router>
+          </Router>
+      {/* <Router>
       <Routes>
         <Route path="/" element={<Layout/>}>
           <Route index element ={<S.HomePage/>}/>
@@ -38,7 +38,7 @@ function App() {
         </Route>
       </Routes>
       </Router>
-      
+       */}
     </div>
   );
 }
