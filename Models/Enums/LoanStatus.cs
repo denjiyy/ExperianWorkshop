@@ -3,6 +3,7 @@
     public enum LoanStatus
     {
         Active,
+        Pending,
         PaidOff
     }
 }

@@ -1,135 +1,150 @@
-﻿//using BankManagementSystem.DataProcessor;
-//using Microsoft.AspNetCore.Mvc;
-//using Microsoft.Extensions.Configuration;
-//using Microsoft.IdentityModel.Tokens;
-//using System.IdentityModel.Tokens.Jwt;
-//using System.Security.Claims;
-//using System.Text;
-//using System.Threading.Tasks;
-//using System.Linq;
-//using BankManagementSystem.Models;
-//using System.Security.Cryptography;
-//using Microsoft.EntityFrameworkCore;
-//using Flurl.Http;
-//using Microsoft.AspNetCore.Authorization;
+﻿using BankManagementSystem.DataProcessor;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
+using System.Threading.Tasks;
+using System.Linq;
+using BankManagementSystem.Models;
+using System.Security.Cryptography;
+using Microsoft.EntityFrameworkCore;
+using Flurl.Http;
+using Microsoft.AspNetCore.Authorization;
 
-//[ApiController]
-//[Route("/auth")]
-//public class AuthController : ControllerBase
-//{
-//    private readonly BankSystemContext _context;
-//    private readonly IConfiguration _configuration;
+[ApiController]
+[Route("/auth")]
+public class AuthController : ControllerBase
+{
+    private readonly BankSystemContext _context;
+    private readonly IConfiguration _configuration;
+    
+    public AuthController(BankSystemContext context, IConfiguration configuration)
+    {
+        _context = context;
+        _configuration = configuration;
+    }
 
-//    public AuthController(BankSystemContext context, IConfiguration configuration)
-//    {
-//        _context = context;
-//        _configuration = configuration;
-//    }
+    // POST: /auth/login
+    [HttpPost]
+    [Route("login")]
+    [AllowAnonymous]
+    public IActionResult Login([FromBody] LoginDto loginDto)
+    {
+        User? user = _context.Users
+            .FirstOrDefault(x => x.Username == loginDto.Username && x.Password == loginDto.Password);
 
-//    [HttpPost]
-//    [Route("login")]
-//    [AllowAnonymous]
-//    public IActionResult Login([FromBody] LoginDto loginDto)
-//    {
-//        User? user = _context.Users
-//            .FirstOrDefault(x => x.Username == loginDto.Username && x.Password == loginDto.Password);
-//        if (user != null)
-//        {
-//            var claims = new[]
-//            {
-//                 new Claim(JwtRegisteredClaimNames.Sub, _configuration["Jwt:Subject"]!),
-//                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-//                 new Claim("UserId", user.Id.ToString()),
-//                 new Claim("Username", user.Username.ToString())
-//            };
+        if (user != null)
+        {
+            var claims = new[]
+            {
+            new Claim(JwtRegisteredClaimNames.Sub, _configuration["Jwt:Subject"]!), // Subject claim
+            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()), // Unique identifier for the token
+            new Claim("UserId", user.Id.ToString()), // User ID claim
+            new Claim("Username", user.Username), // Username claim
+            new Claim("IsAdministrator", user.IsAdministrator.ToString()) // Admin status claim
+        };
 
-//            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:SecretKey"]!));
-//            var signIn = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-//            var token = new JwtSecurityToken(_configuration["Jwt:Issuer"], _configuration["Jwt:Audience"], claims, expires: DateTime.UtcNow.AddHours(1), signingCredentials: signIn);
+            // Create a security key using the secret key from the configuration
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:SecretKey"]!));
+            var signIn = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
-//            string tokenValue = new JwtSecurityTokenHandler().WriteToken(token);
+            var token = new JwtSecurityToken(
+                _configuration["Jwt:Issuer"],
+                _configuration["Jwt:Audience"],
+                claims,
+                expires: DateTime.UtcNow.AddHours(1),
+                signingCredentials: signIn
+            );
 
-//            return Ok(new { Token = tokenValue });
-//        }
+            string tokenValue = new JwtSecurityTokenHandler().WriteToken(token);
 
-//        return NoContent();
-//    }
+            return Ok(new
+            {
+                Token = tokenValue,
+                Administrator = user.IsAdministrator
+            });
+        }
 
-//    [HttpPost("refresh")]
-//    public async Task<IActionResult> Refresh()
-//    {
-//        var refreshToken = Request.Cookies["refreshToken"]; // Retrieve refresh token from cookie
+        return NoContent(); // Return 204 No Content if login fails
+    }
 
-//        if (refreshToken == null)
-//        {
-//            return Unauthorized("Refresh accessToken is missing");
-//        }
+    //[HttpPost("refresh")]
+    //public async Task<IActionResult> Refresh()
+    //{
+    //    var refreshToken = Request.Cookies["refreshToken"]; // Retrieve refresh token from cookie
 
-//        var storedToken = await _context.RefreshTokens
-//            .Include(rt => rt.User)
-//            .FirstOrDefaultAsync(rt => rt.Token == refreshToken);
+    //    if (refreshToken == null)
+    //    {
+    //        return Unauthorized("Refresh accessToken is missing");
+    //    }
 
-//        if (storedToken == null || storedToken.ExpiryDate <= DateTime.UtcNow)
-//        {
-//            return Unauthorized("Invalid or expired refresh accessToken");
-//        }
+    //    var storedToken = await _context.RefreshTokens
+    //        .Include(rt => rt.User)
+    //        .FirstOrDefaultAsync(rt => rt.Token == refreshToken);
 
-//        var user = storedToken.User;
-//        if (user == null)
-//        {
-//            return Unauthorized("User not found");
-//        }
+    //    if (storedToken == null || storedToken.ExpiryDate <= DateTime.UtcNow)
+    //    {
+    //        return Unauthorized("Invalid or expired refresh accessToken");
+    //    }
 
-//        var newToken = GenerateJwtToken(user.Username, _configuration["Jwt:SecretKey"]);
+    //    var user = storedToken.User;
+    //    if (user == null)
+    //    {
+    //        return Unauthorized("User not found");
+    //    }
 
-//        ///var newRefreshToken = GenerateRefreshTokenString();
-//        //storedToken.Token = newRefreshToken;
-//        //storedToken.ExpiryDate = DateTime.UtcNow.AddDays(7);
-//        //_context.RefreshTokens.Update(storedToken);
-//        await _context.SaveChangesAsync();
+    //    var newToken = GenerateJwtToken(user.Username, _configuration["Jwt:SecretKey"]);
 
-//        //SetRefreshTokenCookie(newRefreshToken);
+    //    ///var newRefreshToken = GenerateRefreshTokenString();
+    //    //storedToken.Token = newRefreshToken;
+    //    //storedToken.ExpiryDate = DateTime.UtcNow.AddDays(7);
+    //    //_context.RefreshTokens.Update(storedToken);
+    //    await _context.SaveChangesAsync();
 
-//        return Ok(new { token = newToken });
-//    }
+    //    //SetRefreshTokenCookie(newRefreshToken);
 
-//    private void SetRefreshTokenCookie(string refreshToken)
-//    {
-//        var cookieOptions = new CookieOptions
-//        {
-//            HttpOnly = true, // This ensures the token is not accessible by JavaScript
-//            Secure = true,
-//            Expires = DateTime.UtcNow.AddDays(7)
-//        };
+    //    return Ok(new { token = newToken });
+    //}
 
-//        Response.Cookies.Append("refreshToken", refreshToken, cookieOptions);
-//    }
+    //private void SetRefreshTokenCookie(string refreshToken)
+    //{
+    //    var cookieOptions = new CookieOptions
+    //    {
+    //        HttpOnly = true, // This ensures the token is not accessible by JavaScript
+    //        Secure = true,
+    //        Expires = DateTime.UtcNow.AddDays(7)
+    //    };
 
-//    private string GenerateRefreshTokenString()
-//    {
-//        var randomNumber = new byte[64];
+    //    Response.Cookies.Append("refreshToken", refreshToken, cookieOptions);
+    //}
 
-//        using (var numberGenerator = RandomNumberGenerator.Create())
-//        {
-//            numberGenerator.GetBytes(randomNumber);
-//        }
+    //private string GenerateRefreshTokenString()
+    //{
+    //    var randomNumber = new byte[64];
 
-//        return Convert.ToBase64String(randomNumber);
-//    }
+    //    using (var numberGenerator = RandomNumberGenerator.Create())
+    //    {
+    //        numberGenerator.GetBytes(randomNumber);
+    //    }
 
-//    private string GenerateJwtToken(string username, string secretKey)
-//    {
-//        var tokenHandler = new JwtSecurityTokenHandler();
-//        var key = Encoding.ASCII.GetBytes(secretKey);
+    //    return Convert.ToBase64String(randomNumber);
+    //}
 
-//        var tokenDescriptor = new SecurityTokenDescriptor
-//        {
-//            Subject = new ClaimsIdentity(new[] { new Claim(ClaimTypes.Name, username) }),
-//            Expires = DateTime.UtcNow.AddHours(1),
-//            SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
-//        };
+    //private string GenerateJwtToken(string username, string secretKey)
+    //{
+    //    var tokenHandler = new JwtSecurityTokenHandler();
+    //    var key = Encoding.ASCII.GetBytes(secretKey);
 
-//        var token = tokenHandler.CreateToken(tokenDescriptor);
-//        return tokenHandler.WriteToken(token);
-//    }
-//}
+    //    var tokenDescriptor = new SecurityTokenDescriptor
+    //    {
+    //        Subject = new ClaimsIdentity(new[] { new Claim(ClaimTypes.Name, username) }),
+    //        Expires = DateTime.UtcNow.AddHours(1),
+    //        SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+    //    };
+
+    //    var token = tokenHandler.CreateToken(tokenDescriptor);
+    //    return tokenHandler.WriteToken(token);
+    //}
+}

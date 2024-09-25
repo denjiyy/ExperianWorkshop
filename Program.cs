@@ -19,12 +19,13 @@ public class Program
         // Add services to the container.
         builder.Services.AddControllersWithViews();
 
+        // Configure JSON options
         builder.Services.AddControllers().AddJsonOptions(options =>
         {
             options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
         });
 
-        // Register IHttpContextAccessor if needed
+        // Register IHttpContextAccessor
         builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
         // Configure session management
@@ -43,16 +44,18 @@ public class Program
                 builder => builder.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
         });
 
+        // Configure Entity Framework with SQL Server
         builder.Services.AddDbContext<BankSystemContext>(options =>
-                options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+            options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+        // Configure JWT Authentication
         builder.Services.AddAuthentication(options =>
         {
             options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
             options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
         }).AddJwtBearer(options =>
         {
-            options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+            options.TokenValidationParameters = new TokenValidationParameters
             {
                 ValidateIssuer = true,
                 ValidateAudience = true,
@@ -87,20 +90,24 @@ public class Program
 
         app.UseRouting();
 
-        app.UseCors("AllowAllOrigins"); // Make sure CORS policy is applied
+        // Apply CORS policy
+        app.UseCors("AllowAllOrigins");
 
-        // Commented out authentication since JWT is disabled for testing
-        app.UseAuthentication(); // Ensure authentication is before authorization
+        // Use authentication middleware
+        app.UseAuthentication(); // This should be before UseAuthorization
+
+        // Use authorization middleware
         app.UseAuthorization();
-        app.UseSession(); // Use session before endpoint mapping
 
-        // Add the custom TokenMiddleware directly in the pipeline
-        //app.UseMiddleware<TokenMiddleware>();
+        // Use session middleware
+        app.UseSession(); // Place session middleware before endpoint mapping
 
+        // Map default controller route
         app.MapControllerRoute(
             name: "default",
             pattern: "{controller=Home}/{action=Index}/{id?}");
 
+        // Run the app
         app.Run();
     }
 }

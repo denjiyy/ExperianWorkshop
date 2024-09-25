@@ -12,6 +12,7 @@ namespace BankManagementSystem.Models
         {
             Cards = new HashSet<Card>();
             Transactions = new HashSet<Transaction>();
+            DateOpened = DateOnly.FromDateTime(DateTime.UtcNow);
         }
 
         [Key]
@@ -31,8 +32,6 @@ namespace BankManagementSystem.Models
 
         [Required]
         public DateOnly DateOpened { get; set; }
-
-        //public decimal InterestRate { get; set; } : if any of the accounts have interest accrual (savings account for example)
 
         [Required]
         public Status Status { get; set; }

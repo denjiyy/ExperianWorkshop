@@ -7,5 +7,6 @@
         public string CurrencyType { get; set; }
         public decimal Fee { get; set; }
         public DateOnly Date { get; set; }
+        public int LoanId { get; set; }
     }
 }

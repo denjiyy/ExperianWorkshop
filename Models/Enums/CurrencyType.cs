@@ -2,8 +2,8 @@
 {
     public enum CurrencyType
     {
-        Lev,
-        Euro,
-        Dollar
+        Bgn,
+        Eur,
+        Usd
     }
 }

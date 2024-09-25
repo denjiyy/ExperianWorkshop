@@ -17,5 +17,6 @@ namespace BankManagementSystem.DataProcessor
         public DateOnly DateOpened { get; set; }
         public string Status { get; set; }
         public HashSet<TransactionsDto> Transactions { get; set; }
+        public int UserId { get; set; }
     }
 }

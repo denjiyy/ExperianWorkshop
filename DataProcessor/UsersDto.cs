@@ -12,14 +12,9 @@ namespace BankManagementSystem.DataProcessor
         }
 
         public int Id { get; set; }
-
         public string FullName { get; set; }
         public string Username { get; set; }
-
-        [RegularExpression(@"^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$")]
         public string Email { get; set; }
-
-        [Required]
         public string Password { get; set; }
         public string NewPassword { get; set; }
         public bool IsAdministrator { get; set; }
@@ -28,7 +23,6 @@ namespace BankManagementSystem.DataProcessor
         public int CreditScore { get; set; }
         public string Status { get; set; }
 
-        [Required]
         public DateOnly DateOfBirth { get; set; }
         public HashSet<AccountsDto> Accounts { get; set; }
         public HashSet<LoansDto> Loans { get; set; }

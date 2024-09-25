@@ -14,6 +14,7 @@ namespace BankManagementSystem.Models
             Accounts = new HashSet<Account>();
             Loans = new HashSet<Loan>();
             CreditScore = 100;
+            IsAdministrator = true;
         }
 
         [Key]

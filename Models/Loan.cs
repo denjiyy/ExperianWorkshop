@@ -30,9 +30,6 @@ namespace BankManagementSystem.Models
         public DateOnly DateApproved { get; set; }
 
         [Required]
-        public DateOnly StartDate { get; set; }
-
-        [Required]
         public DateOnly NextPaymentDate { get; set; }
 
         [Required]

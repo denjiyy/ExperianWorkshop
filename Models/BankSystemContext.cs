@@ -57,6 +57,54 @@ namespace BankManagementSystem.Models
                 .Property(p => p.Amount)
                 .HasPrecision(18, 2);
 
+            //modelBuilder.HasSequence<int>("UserSequence")
+            //    .StartsAt(1)
+            //    .IncrementsBy(1);
+
+            //modelBuilder.Entity<User>()
+            //    .Property(u => u.Id)
+            //    .HasDefaultValueSql("NEXT VALUE FOR UserSequence");
+
+            //modelBuilder.HasSequence<int>("AccountSequence")
+            //    .StartsAt(1)
+            //    .IncrementsBy(1);
+
+            //modelBuilder.Entity<Account>()
+            //    .Property(a => a.Id)
+            //    .HasDefaultValueSql("NEXT VALUE FOR AccountSequence");
+
+            //modelBuilder.HasSequence<int>("CardSequence")
+            //    .StartsAt(1)
+            //    .IncrementsBy(1);
+
+            //modelBuilder.Entity<Card>()
+            //    .Property(c => c.Id)
+            //    .HasDefaultValueSql("NEXT VALUE FOR CardSequence");
+
+            //modelBuilder.HasSequence<int>("LoanSequence")
+            //    .StartsAt(1)
+            //    .IncrementsBy(1);
+
+            //modelBuilder.Entity<Loan>()
+            //    .Property(l => l.Id)
+            //    .HasDefaultValueSql("NEXT VALUE FOR LoanSequence");
+
+            //modelBuilder.HasSequence<int>("TransactionSequence")
+            //    .StartsAt(1)
+            //    .IncrementsBy(1);
+
+            //modelBuilder.Entity<Transaction>()
+            //    .Property(t => t.Id)
+            //    .HasDefaultValueSql("NEXT VALUE FOR TransactionSequence");
+
+            //modelBuilder.HasSequence<int>("PaymentSequence")
+            //    .StartsAt(1)
+            //    .IncrementsBy(1);
+
+            //modelBuilder.Entity<Payment>()
+            //    .Property(p => p.Id)
+            //    .HasDefaultValueSql("NEXT VALUE FOR PaymentSequence");
+
             base.OnModelCreating(modelBuilder);
         }
     }

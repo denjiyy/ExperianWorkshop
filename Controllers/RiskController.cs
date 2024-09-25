@@ -1,8 +1,10 @@
 ﻿using BankManagementSystem.DataProcessor;
 using BankManagementSystem.Models;
 using BankManagementSystem.Models.Enums;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace BankManagementSystem.Controllers
 {
@@ -11,37 +13,64 @@ namespace BankManagementSystem.Controllers
     public class RiskController : ControllerBase
     {
         private readonly BankSystemContext _context;
-
+        private readonly IHttpContextAccessor _contextAccessor;
         private const decimal CreditScoreWeight = 0.5m;
         private const decimal TypeWeight = 0.2m;
         private const decimal AmountWeight = 0.15m;
         private const decimal TimeWeight = 0.15m;
 
-        public RiskController(BankSystemContext context)
+        public RiskController(BankSystemContext context, IHttpContextAccessor contextAccessor)
         {
             _context = context;
+            _contextAccessor = contextAccessor;
+        }
+
+        // Method to get logged in user from the JWT token
+        private async Task<User> GetLoggedInUser()
+        {
+            // Extract the JWT token from the Authorization header
+            var token = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+            if (token == null)
+                return null!;
+
+            // Parse the token to extract claims
+            var handler = new JwtSecurityTokenHandler();
+            var jwtToken = handler.ReadJwtToken(token);
+            var userIdClaim = jwtToken.Claims.FirstOrDefault(claim => claim.Type == "UserId")?.Value;
+
+            // Find the user from the database using the extracted user ID
+            if (userIdClaim != null && int.TryParse(userIdClaim, out var userId))
+            {
+                return await _context.Users.FindAsync(userId);
+            }
+
+            return null!; // Return null if the user could not be found
         }
 
         [HttpPost("calculate-risk")]
-        public decimal CalculateRiskScore([FromBody] LoansDto loanDto, int userId)
+        [Authorize]
+        public async Task<ActionResult<decimal>> CalculateRiskScore([FromBody] LoansDto loanDto)
         {
-            if (loanDto == null) throw new ArgumentNullException(nameof(loanDto), "Loan data is required.");
+            if (loanDto == null)
+                return BadRequest("Loan data is required.");
 
-            var user = _context.Users.Find(userId);
-            if (user == null) throw new ArgumentNullException(nameof(user), "User not found.");
+            var user = await GetLoggedInUser();  // Use the method to get the logged-in user
 
-            var userLoans = _context.Loans.Where(l => l.UserId == userId).ToList();
-            var userPayments = _context.Payments.Include(p => p.Loan).Where(p => p.Loan.UserId == userId).ToList();
+            if (user == null)
+                return Unauthorized("User identity not found in the token.");
+
+            var userLoans = await _context.Loans.Where(l => l.UserId == user.Id).ToListAsync();
+            var userPayments = await _context.Payments.Include(p => p.Loan).Where(p => p.Loan.UserId == user.Id).ToListAsync();
 
             decimal creditScoreFactor = CreditScoreWeight * GetCreditScoreFactor(user);
             decimal typeFactor = TypeWeight * GetTypeFactor(loanDto.LoanType);
-            decimal amountFactor = AmountWeight * GetAmountFactor(loanDto.Amount);
-            decimal timeFactor = TimeWeight * GetTimeFactor(loanDto.StartDate, loanDto.EndDate);
+            decimal amountFactor = AmountWeight * GetAmountFactor(loanDto.Amount, loanDto.LoanType);
+            decimal timeFactor = TimeWeight * GetTimeFactor(loanDto.StartDate, loanDto.DurationInMonths, loanDto.LoanType);
 
             decimal riskScore = creditScoreFactor + typeFactor + amountFactor + timeFactor;
             riskScore += CalculateAdditionalRiskFactors(userLoans, userPayments, user);
 
-            return riskScore;
+            return Ok(riskScore);
         }
 
         private decimal GetCreditScoreFactor(User user)
@@ -60,28 +89,46 @@ namespace BankManagementSystem.Controllers
             };
         }
 
-        private decimal GetAmountFactor(decimal amount)
+        private decimal GetAmountFactor(decimal amount, string loanType)
         {
-            if (amount > 1000000) return 0;
-            return amount switch
+            (decimal minAmount, decimal maxAmount) limits = loanType switch
             {
-                < 10000 => 40,
-                < 50000 => 60,
-                < 100000 => 80,
-                _ => 100,
+                "Personal" => (500, 75_000),
+                "Student" => (1_000, 10_000),
+                "Mortgage" => (10_000, 1_000_000),
+                _ => (500, 75_000),
             };
+
+            return CalculateScoreBasedOnAmount(amount, limits.minAmount, limits.maxAmount);
         }
 
-        private decimal GetTimeFactor(DateOnly startDate, DateOnly endDate)
+        private decimal CalculateScoreBasedOnAmount(decimal amount, decimal minAmount, decimal maxAmount)
         {
-            var durationInMonths = ((endDate.Year - startDate.Year) * 12) + (endDate.Month - startDate.Month);
+            if (amount > maxAmount) return 1;
+            if (amount < minAmount) return 100;
 
-            return durationInMonths switch
+            return 100 - ((amount - minAmount) / (maxAmount - minAmount) * 99);
+        }
+
+        private decimal GetTimeFactor(DateOnly startDate, int durationInMonths, string loanType)
+        {
+            (int minMonths, int maxMonths) timeLimits = loanType switch
             {
-                > 420 => 80,
-                > 120 => 60,
-                _ => 40,
+                "Personal" => (3, 120),
+                "Student" => (3, 60),
+                "Mortgage" => (12, 420),
+                _ => (3, 420),
             };
+
+            return CalculateScoreBasedOnDuration(durationInMonths, timeLimits.minMonths, timeLimits.maxMonths);
+        }
+
+        private decimal CalculateScoreBasedOnDuration(int durationInMonths, int minMonths, int maxMonths)
+        {
+            if (durationInMonths > maxMonths) return 1;
+            if (durationInMonths < minMonths) return 100;
+
+            return 100 - ((durationInMonths - minMonths) / (decimal)(maxMonths - minMonths) * 99);
         }
 
         private decimal CalculateAdditionalRiskFactors(List<Loan> userLoans, List<Payment> userPayments, User user)
@@ -124,7 +171,8 @@ namespace BankManagementSystem.Controllers
         }
 
         [HttpPut("{id}/update-credit-score")]
-        public async Task<IActionResult> UpdateCreditScore(int id, [FromBody] int? scoreChange)
+        [Authorize]
+        public async Task<IActionResult> UpdateCreditScore([FromBody] int? scoreChange, int id = 1)
         {
             if (!scoreChange.HasValue)
             {
@@ -139,7 +187,7 @@ namespace BankManagementSystem.Controllers
             var user = await _context.Users.FindAsync(id);
             if (user == null) return NotFound("User not found.");
 
-            user.UpdateCreditScore(scoreChange.Value);
+            user.CreditScore = scoreChange.Value;
             _context.Entry(user).State = EntityState.Modified;
 
             await _context.SaveChangesAsync();
@@ -147,22 +195,25 @@ namespace BankManagementSystem.Controllers
             return Ok(new { message = "Credit score updated.", creditScore = user.CreditScore });
         }
 
-        [HttpGet("user-risk/{userId}")]
-        public ActionResult<decimal> GetUserRiskScore(int userId, [FromBody] LoansDto loanDto)
+        [HttpGet("user-risk")]
+        public async Task<ActionResult<decimal>> GetUserRiskScore([FromBody] LoansDto loanDto)
         {
-            if (loanDto == null) return BadRequest("Loan data is required.");
+            if (loanDto == null)
+                return BadRequest("Loan data is required.");
 
-            var user = _context.Users.Find(userId);
-            if (user == null) return NotFound("User not found.");
+            var user = await GetLoggedInUser();  // Use the method to get the logged-in user
 
-            var riskScore = CalculateRiskScore(loanDto, userId);
+            if (user == null)
+                return Unauthorized("User identity not found in the token.");
 
-            if (riskScore < 45)
+            var riskScore = await CalculateRiskScore(loanDto);
+
+            if (riskScore.Value < 45)
             {
-                return Ok(new { RiskScore = riskScore, Status = "Loan Denied", Message = "Loan denied due to high risk assessment." });
+                return Ok(new { RiskScore = riskScore.Value, Status = "Loan Denied", Message = "Loan denied due to high risk assessment." });
             }
 
-            return Ok(new { RiskScore = riskScore, Status = "Loan Approved", Message = "Loan approved based on risk assessment." });
+            return Ok(new { RiskScore = riskScore.Value, Status = "Loan Approved", Message = "Loan approved based on risk assessment." });
         }
     }
 }
