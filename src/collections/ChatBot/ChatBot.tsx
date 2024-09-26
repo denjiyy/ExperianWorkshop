@@ -14,8 +14,9 @@ const Chatbot = () => {
 
   const sendMessage = async (e) => {
     e.preventDefault();
-    setSendUserResponse(message);
     try {
+      // setMessage(e.target.value);
+      setSendUserResponse(message);
       const res = await axios.post("http://localhost:5000/api/chatbot", {
         message,
       });

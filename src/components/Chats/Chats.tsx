@@ -33,7 +33,7 @@ const Chats: React.FC<Props> = (props) => {
     } else {
       let tempArray = [...messages];
       tempArray.push({ message: props.sendUserResponse, sender: "user" });
-      setMessages(tempArray);
+      // setMessages(tempArray);
 
       setTimeout(() => {
         let temp2 = [...tempArray];
