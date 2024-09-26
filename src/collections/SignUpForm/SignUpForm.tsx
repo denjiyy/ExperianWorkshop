@@ -191,9 +191,9 @@ import { useNavigate } from "react-router-dom";
   );
 };
 
-const mapStateToProps = (state:DUserState) =>{
+const mapStateToProps = (state:any) =>{
   return({
-    DUserList:state.list
+    DUserList:"list"
 })
 }
 const mapActionsToProps={

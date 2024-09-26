@@ -12,7 +12,7 @@ interface onHandleRUDProps extends onCreateProps{
     id:string;
 }
 
-const BaseUrl_Loan ="https://localhost:7223/api/Loans"
+
 export const ACTION_TYPES={
     CREATE: "CREATE",
     UPDATE: "UPDATE",
@@ -23,7 +23,7 @@ export const ACTION_TYPES={
 
 
 export const fetchAll = () =>(dispatch:AppDispatch)=>{
-    api.Crud({url:BaseUrl_Loan}).fetchAll().then((res)=>{
+    api.Crud({url:"https://localhost:7223/api/Accounts"}).fetchAll().then((res)=>{
         console.log("API Response:(not dispatched)",res.data);
         dispatch({
             type:ACTION_TYPES.FETCH_ALL,
@@ -34,7 +34,7 @@ export const fetchAll = () =>(dispatch:AppDispatch)=>{
 }
 export const fetchById =({id}:onHandleRUDProps)=>(dispatch:AppDispatch) =>{
 
-    api.Crud({url:BaseUrl_Loan}).fetchById().then((res)=>{
+    api.Crud({url:"https://localhost:7223/api/Accounts"}).fetchById().then((res)=>{
         console.log("API Response:(not dispatched)",res.data);
         dispatch({
             type:ACTION_TYPES.FETCH_ID,
@@ -43,7 +43,7 @@ export const fetchById =({id}:onHandleRUDProps)=>(dispatch:AppDispatch) =>{
     }).catch((err:any)=>console.log(err))
 }
 export const create = ({data}:onCreateProps)=> (dispatch:AppDispatch)=>{
-    api.Crud({url:BaseUrl_Loan}).create(data).then(res=>{
+    api.Crud({url:"https://localhost:7223/api/Accounts"}).create(data).then(res=>{
      
      console.log("API Response:",res.data);
      dispatch({
@@ -53,7 +53,7 @@ export const create = ({data}:onCreateProps)=> (dispatch:AppDispatch)=>{
    }).catch(err=>console.log((err)))
  }
  export const update=({id,data}:onHandleRUDProps)=>(dispatch:AppDispatch)=>{
-    api.Crud({url:BaseUrl_Loan}).update(id,data).then(res=>{
+    api.Crud({url:"https://localhost:7223/api/Accounts"}).update(id,data).then(res=>{
         console.log("API Response:(not dispatched)",res.data);
         dispatch({
             type:ACTION_TYPES.UPDATE,
@@ -62,7 +62,7 @@ export const create = ({data}:onCreateProps)=> (dispatch:AppDispatch)=>{
     }).catch((err:any)=>console.log(err))
  }
  export const delete_ = ({id}:onHandleRUDProps)=>(dispatch:AppDispatch)=>{
-    api.Crud({url:BaseUrl_Loan}).delete(id).then(res=>{
+    api.Crud({url:"https://localhost:7223/api/Accounts"}).delete(id).then(res=>{
         console.log("API Response:(not dispatched)",res.data);
         dispatch({
             type:ACTION_TYPES.DELETE,

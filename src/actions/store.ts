@@ -2,19 +2,19 @@ import { configureStore,Tuple } from "@reduxjs/toolkit";
 import {useDispatch} from "react-redux"
 import { thunk } from "redux-thunk";
 import logger from "redux-logger"
-import {DUser} from "../reducers"
+import {DAccount, DLoans, DUser} from "../reducers"
 // import { apiSlice } from "./apiSlice";
 // import authReducer from "./authSlice"
 export const store = configureStore({
   reducer:{
     DUser,
+    DAccount,
+    DLoans,
     // auth:authReducer,
     // [apiSlice.reducerPath]:apiSlice.reducer
     },
    middleware: () => new Tuple(thunk,logger)
-  // middleware:(getDefaultMiddleware)=>
-  //   getDefaultMiddleware().concat(apiSlice.middleware)
-  // //.concat(logger)
+
   ,
   devTools:true,
 

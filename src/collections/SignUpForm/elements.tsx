@@ -10,7 +10,7 @@ export const FormInput = styled(_form)(() => css`
 width:100%;
 `);
 export const FormInputContainer = styled.form(
-  ({ theme: { colors, breakpoint } }) => css`
+  () => css`
     display: flex;
     flex-direction: column;
     margin-bottom:20px;

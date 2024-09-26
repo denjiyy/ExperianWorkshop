@@ -9,6 +9,7 @@ import { useNavigate } from "react-router-dom";
 // import { useLoginMutation } from "../../actions/authApiSlice";
 // import { setCredentials } from "../../actions/authSlice";
 import { LoginProps } from "../../types/form";
+import { RootState } from "@/src/actions/store";
 
 
 //import AuthContext from "@/src/axios_auth/context/AuthProvider";
@@ -16,7 +17,10 @@ import { LoginProps } from "../../types/form";
 //import axios from "../../axios_auth/api/axios";
 // const LOGIN_URL = 'api/auth'
 
-
+interface responseProps{
+  token?:string;
+  administrator:boolean;
+}
 export const LoginFormToConnect = (props:any) => {
   //const {setAuth} = useContext(AuthContext)
 const emailRef = useRef()
@@ -42,22 +46,30 @@ useEffect(()=>{
       password: "",
     },
   });
-  const submitHandler = handleSubmit(async(data:LoginProps)=>{
-
-
-    //  localStorage.setItem('token',"")
-    //  localStorage.getItem('token')
-
-
+  const submitHandler = handleSubmit(async (data: LoginProps) => {
     if (Object.keys(errors).length === 0) {
-     const response = await props.loginuser(data); 
-     localStorage.setItem('token',response)
-   
-     if(response){
-       navigate(`/${response.userId}`)
-     }
+      try {
+        // Await the login API call
+        const response : responseProps = await props.loginuser(data);
+        const {token,administrator} = props.dUserList[0];
+
+        if(token){
+          localStorage.setItem('token',token)
+        localStorage.setItem('administrator',administrator)
+        }
+        
+      }
+        // Check if response exists and contains the expected data
+     catch (error) {
+        // Handle any errors during API call or processing
+        console.error("An error occurred during login:", error);
+      }
     }
-  })
+     else {
+      console.error("There are validation errors:", errors);
+    }
+});
+  
   
   
   // };
@@ -133,9 +145,10 @@ useEffect(()=>{
     </S.PageContainer>
   );
 };
-const mapStateToProps = (state:DUserState) =>{
+const mapStateToProps = (state:RootState) =>{
+
   return({
-    DUserList:state.list
+    dUserList:state.DUser.list
 })
 }
 const mapActionsToProps={

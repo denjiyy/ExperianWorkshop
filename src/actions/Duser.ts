@@ -1,6 +1,7 @@
 import { AppDispatch } from "./store";
-import api from "./apiCRUDSlice";
+import { api } from "./apiCRUDSlice";
 import { LoginProps, SignUpProps } from "../types/form";
+import { DUserState } from "../types";
 // export const create = (data:any) =>{
 //     return({
 //         type:'create',
@@ -20,6 +21,9 @@ interface onLoginProps{
 interface onUpdateProps extends onCreateProps{
   id:string;
 }
+interface ResponseProps{
+  data:DUserState
+}
 export const ACTION_TYPES = {
   CREATE: "CREATE",
   UPDATE: "UPDATE",
@@ -37,7 +41,7 @@ export const ACTION_TYPES = {
 
 export const fetchAll = () => (dispatch: AppDispatch) => {
   api
-    .dUser({})
+    .Crud({url:"https://localhost:7223/api/Users"})
     .fetchAll()
     .then((response) => {
       dispatch({
@@ -48,7 +52,7 @@ export const fetchAll = () => (dispatch: AppDispatch) => {
     .catch((err) => console.log(err));
 };
 export const fetchById = ({id}:onUpdateProps) => (dispatch:AppDispatch)=>{
-  api.dUser({}).fetchById(id).then((res)=>{
+  api.Crud({url:"https://localhost:7223/api/Users"}).fetchById(id).then((res)=>{
     dispatch({
       type:ACTION_TYPES.FETCH_ID,
       payload:res.data,
@@ -68,7 +72,8 @@ export const fetchById = ({id}:onUpdateProps) => (dispatch:AppDispatch)=>{
 // }).catch(err=>console.log(err))
 // }
 export const create = (data:SignUpProps)=> (dispatch:AppDispatch)=>{
-   api.dUser({}).create(data).then(res=>{
+   api.Crud({url:"https://localhost:7223/api/Users"}).create(data).then(res=>{
+    
     console.log("API Response:",res.data);
     dispatch({
       type:ACTION_TYPES.CREATE,
@@ -77,17 +82,17 @@ export const create = (data:SignUpProps)=> (dispatch:AppDispatch)=>{
   }).catch(err=>console.log((err)))
 }
 export const loginUser = (data:LoginProps)=> (dispatch:AppDispatch)=>{
-  api.dUser({}).loginUser(data).then(res=>{
-   console.log("API Response:",res.data);
+  api.Crud({url :"https://localhost:7223/auth/login"}).loginUser(data).then((res:ResponseProps)=>{
    dispatch({
      type:ACTION_TYPES.CREATE,
      payload:res.data
    })
+   return res.data;
  }).catch(err=>console.log((err)))
 }
 export const update = ({id,data,onSuccess}:onUpdateProps)=>  (dispatch: AppDispatch) =>{
   // data = FormateDate(data)
-  api.dUser({url :"https://localhost:7223/api/Users"}).update(id,data).then(res=>{
+  api.Crud({url:"https://localhost:7223/api/Users"}).update(id,data).then(res=>{
     dispatch({
       type:ACTION_TYPES.UPDATE,
       payload:{id:id,...data}
@@ -97,7 +102,7 @@ export const update = ({id,data,onSuccess}:onUpdateProps)=>  (dispatch: AppDispa
   }
   export const delete_ = ({id,data,onSuccess}:onUpdateProps)=>  (dispatch: AppDispatch) =>{
     // data = FormateDate(data)
-    api.dUser({}).delete(id).then(res=>{
+    api.Crud({url:"https://localhost:7223/api/Users"}).delete(id).then(res=>{
       dispatch({
         type:ACTION_TYPES.DELETE,
         payload:id
