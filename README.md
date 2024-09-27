@@ -609,3 +609,5 @@ The `DepositCalculationRequest` model represents the request for calculating dep
 - `TimesCompounded` (integer): The number of times the interest is compounded per year.
 - `TimePeriodInYears` (integer): The duration of the investment in years.
 
+### For more information : 
+- https://docs.google.com/document/d/1nymaJ4zOTto9MLfbeafpfs-qdhjGtVuP3kIC6eEjlNA/edit?usp=sharing
