@@ -5,14 +5,14 @@ App running at:
 
 ### Project setup
 
-At *frontend folder* run:
+- At *frontend folder* run:
 ```
 npm install
 npm start
 ```
-Start the backed project and run data base migrations
+- Start the backed project and run data base migrations
 
-At *AI folder* run:
+- At *AI folder* run:
 ```
 python app.py
 ```
