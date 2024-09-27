@@ -1,3 +1,23 @@
+# Bank System
+
+App running at:
+  - Local:   http://localhost:3000/
+
+### Project setup
+
+At *frontend folder* run:
+```
+npm install
+npm start
+```
+Start the backed project and run data base migrations
+
+At *AI folder* run:
+```
+python app.py
+```
+
+
 # Server Architecture
 
 The server architecture of the application is built using **Entity Framework Core (Version 8.0.8)**, **ASP.NET Core**, and the **.NET Framework 8.0**. The database is created using the **Code-First** approach, followed by the implementation of APIs to facilitate communication between the backend and frontend.
